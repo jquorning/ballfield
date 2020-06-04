@@ -195,8 +195,7 @@ package body Ballfield is
                            X, Y   :        Integer;
                            Value  :        String)
    is
-      use SDL.Video.Rectangles;
-      use SDL.C;
+      use SDL.Video.Rectangles, SDL.C;
       Character_Width  : constant int := 7;
       Character_Height : constant int := 10;
 
@@ -213,7 +212,7 @@ package body Ballfield is
       To   : Rectangle;
    begin
       for Pos in Value'Range loop
-         To.X := int (X + (Pos - Value'First) * 7);
+         To.X := int (X) + int (Pos - Value'First) * Character_Width;
          To.Y := int (Y);
 
          Good_Character := True;
