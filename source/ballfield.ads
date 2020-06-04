@@ -20,6 +20,7 @@ package Ballfield is
    BALLS  : constant := 200;
    COLORS : constant := 2;
    type Color_Type is range 0 .. Colors - 1;
+   type Ball_Index is range 0 .. Balls - 1;
 
    type Point_Type is
       record
@@ -28,7 +29,7 @@ package Ballfield is
       end record;
 
    --  Ballfield
-   type Point_Array   is array (1 .. Balls)  of Point_Type;
+   type Point_Array   is array (Ball_Index)  of Point_Type;
    type Surface_Array is array (Color_Type) of SDL.Video.Surfaces.Surface;
    type Texture_Array is array (Color_Type) of SDL.Video.Textures.Texture;
 --   type Frame_Array   is array (Positive range <>) of SDL.Video.Rectangles.Rectangle;

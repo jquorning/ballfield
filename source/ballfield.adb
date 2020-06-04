@@ -39,69 +39,69 @@ package body Ballfield is
    --  respectively, just in case the graphics contains
    --  "alpha noise".
 
-   procedure Clean_Alpha (Work : out surface;
-                          S    :     Surface)
-   is
-      use SDL.Video.Pixel_Formats;
-      subtype Unsigned_32 is Interfaces.Unsigned_32;
-      use type SDL.Video.Pixel_Formats.C.int;
-      --    SDL_Surface *work;
-      Pixels : Natural; --    Uint32*
-      Pp     : Integer;
-      X, Y   : Integer;
-      Size : constant SDL.Sizes := S.Size;
-   begin
-      SDL.Video.Surfaces.Makers.Create (Work,
-                                        -- SDL_SWSURFACE,
-                                        (S.Size.Width, S.Size.Height), 32,
-                                        16#FF_00_00_00#, 16#00_FF_00_00#,
-                                        16#00_00_FF_00#, 16#00_00_00_FF#);
---      Work := SDL_CreateRGBSurface (SDL_SWSURFACE, S.Size.Width, S.Size.Height, 32,
---                                    16#Ff_00_00_00#, 16#00_FF_00_00#,
---                                    16#00_00_FF_00#, 16#00_00_00_FF#);
+--     procedure Clean_Alpha (Work : out surface;
+--                            S    :     Surface)
+--     is
+--        use SDL.Video.Pixel_Formats;
+--        subtype Unsigned_32 is Interfaces.Unsigned_32;
+--        use type SDL.Video.Pixel_Formats.C.int;
+--        --    SDL_Surface *work;
+--        Pixels : Natural; --    Uint32*
+--        Pp     : Integer;
+--        X, Y   : Integer;
+--        Size : constant SDL.Sizes := S.Size;
+--     begin
+--        SDL.Video.Surfaces.Makers.Create (Work,
+--                                          -- SDL_SWSURFACE,
+--                                          (S.Size.Width, S.Size.Height), 32,
+--                                          16#FF_00_00_00#, 16#00_FF_00_00#,
+--                                          16#00_00_FF_00#, 16#00_00_00_FF#);
+--  --      Work := SDL_CreateRGBSurface (SDL_SWSURFACE, S.Size.Width, S.Size.Height, 32,
+--  --                                    16#Ff_00_00_00#, 16#00_FF_00_00#,
+--  --                                    16#00_00_FF_00#, 16#00_00_00_FF#);
 
-      --    if(!work)
---            return NULL;
+--        --    if(!work)
+--  --            return NULL;
 
-      declare
-         use SDL.Video.Rectangles;
-         R  : Rectangle := (0, 0, S.Size.Width, S.Size.Height);
-         SA : Rectangle := (0,0,0,0);
-      begin
-         Work.Blit (R, S, SA);
-      end;
---              if(SDL_BlitSurface(s, &r, work, NULL) < 0)
---      {
---              SDL_FreeSurface(work);
---              return NULL;
---      end if;
+--        declare
+--           use SDL.Video.Rectangles;
+--           R  : Rectangle := (0, 0, S.Size.Width, S.Size.Height);
+--           SA : Rectangle := (0,0,0,0);
+--        begin
+--           Work.Blit (R, S, SA);
+--        end;
+--  --              if(SDL_BlitSurface(s, &r, work, NULL) < 0)
+--  --      {
+--  --              SDL_FreeSurface(work);
+--  --              return NULL;
+--  --      end if;
 
-      Work.Lock;
+--        Work.Lock;
 
-      Pixels := Work.Pixels;
-      Pp := Work.Pitch / (Unsigned_32'Size / 8);
+--        Pixels := Work.Pixels;
+--        Pp := Work.Pitch / (Unsigned_32'Size / 8);
 
-      for Y in 0 .. Work.Size.Height - 1 loop
-         for X in 0 .. Work.Size.Width - 1 loop
+--        for Y in 0 .. Work.Size.Height - 1 loop
+--           for X in 0 .. Work.Size.Width - 1 loop
 
-            declare
-               Pix : Unsigned_32 := Pixels (Y * pp + X);
-            begin
-               case Pix mod 16#100# / 2**4 is
-                  when 0      =>  pix := 16#00000000#;
-                  when others =>  null;
-                  when 15     =>  Pix := Pix or 16#FF#;
-               end case;
+--              declare
+--                 Pix : Unsigned_32 := Pixels (Y * pp + X);
+--              begin
+--                 case Pix mod 16#100# / 2**4 is
+--                    when 0      =>  pix := 16#00000000#;
+--                    when others =>  null;
+--                    when 15     =>  Pix := Pix or 16#FF#;
+--                 end case;
 
-               Pixels (Y * pp + X) := Pix;
-            end;
-         end loop;
-      end loop;
+--                 Pixels (Y * pp + X) := Pix;
+--              end;
+--           end loop;
+--        end loop;
 
-      Work.Unlock;
+--        Work.Unlock;
 
-      --return work;
-   end Clean_Alpha;
+--        --return work;
+--     end Clean_Alpha;
 
    -----------------
    -- Load_Zoomed --
@@ -122,8 +122,8 @@ package body Ballfield is
 --            return NULL;
 
       Sprites := Temp;
-      SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
-      Clean_Alpha (Temp, Sprites);
+      --SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
+--      Clean_Alpha (Temp, Sprites);
       Sprites.Finalize; -- SDL_FreeSurface (Sprites);
 --      if(!temp)
 --      {
@@ -132,15 +132,17 @@ package body Ballfield is
 --      }
 
       if Alpha then
-         SDL.Video.Textures.Set_Alpha (Temp, 0); -- SDL_SRCALPHA or SDL_RLEACCEL, 0);
-         --Sprites := SDL_DisplayFormatAlpha (Temp);
+         null;
+--           SDL.Video.Textures.Set_Alpha (Temp, 0); -- SDL_SRCALPHA or SDL_RLEACCEL, 0);
+--           --Sprites := SDL_DisplayFormatAlpha (Temp);
       else
-         SDL.Video.Surfaces.Set_Colour_Key
-           (Temp, -- SDL_SRCCOLORKEY or SDL_RLEACCEL,
-            Now    => SDL.Video.Pixel_Formats.To_Pixel (Temp.Pixel_Format,0,0,0),
-            --SDL_MapRGB (Temp.format, 0, 0, 0),
-            Enable => True);
-         --Sprites := SDL_DisplayFormat (Temp);
+         null;
+         --           SDL.Video.Surfaces.Set_Colour_Key
+--             (Temp, -- SDL_SRCCOLORKEY or SDL_RLEACCEL,
+--              Now    => SDL.Video.Pixel_Formats.To_Pixel (Temp.Pixel_Format,0,0,0),
+--              --SDL_MapRGB (Temp.format, 0, 0, 0),
+--              Enable => True);
+--           --Sprites := SDL_DisplayFormat (Temp);
       end if;
     --SDL_FreeSurface(temp);
 
@@ -223,11 +225,11 @@ package body Ballfield is
    begin
       Reset (Gen);
 
-      for I in 0 .. BALLS - 1 loop
+      for I in Ball_Index loop
 
          Bf.Points (I).X := Random (Gen) mod 16#20000#;
          Bf.Points (I).Y := Random (Gen) mod 16#20000#;
-         Bf.Points (I).Z := 16#20000# * I / BALLS;
+         Bf.Points (I).Z := 16#20000# * Integer (I) / BALLS;
 
          if Random (Gen) mod 100 > 80 then
             Bf.Points (I).C := 1;
@@ -334,14 +336,15 @@ package body Ballfield is
                                Screen : in out Surface)
    is
       use SDL.C;
-      I, J, Z : Integer;
+      J : Ball_Index;
+      Z : Integer;
    begin
       --
       --  Find the ball with the highest Z.
       --
       Z := 0;
       J := 0;
-      for I in 0 .. BALLS - 1 loop
+      for I in Ball_Index loop
          if BF.Points (I).Z > Z then
             J := I;
             Z := Bf.Points (I).Z;
@@ -459,13 +462,13 @@ package body Ballfield is
       X_Offs : Integer := 0;
       Y_Offs : Integer := 0;
 
-      Tick          : Long_Integer;
-      Last_Tick     : Long_Integer;
-      Last_Avg_Tick : Long_Integer;
+--        Tick          : Long_Integer;
+--        Last_Tick     : Long_Integer;
+--        Last_Avg_Tick : Long_Integer;
 
       T  : Long_Float := 0.000;
-      Dt : Float;
-      I  : Integer;
+--      Dt : Float;
+--      I  : Integer;
 
       FPS : float := 0.0;
       FPS_Count : Integer := 0;
@@ -593,7 +596,7 @@ package body Ballfield is
 
 --           --  Timing
 --           Tick      := SDL_GetTicks;
---           Dt        := (Tick - Last_Tick) * 0.001;
+--         Dt        := (Tick - Last_Tick) * 0.001;
 --           Last_Tick := Tick;
 
          --  Background image
@@ -644,7 +647,8 @@ package body Ballfield is
          X_Offs := X_Offs - Integer (X_Speed);
          Y_Offs := Y_Offs - Integer (Y_Speed);
 
-         T := T + Long_Float (Dt);
+--         T := T + Long_Float (Dt);
+         delay 0.010;
       end loop;
 
       Ballfield_Free (Balls);
