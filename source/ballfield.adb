@@ -22,24 +22,58 @@ with SDL.Events.Keyboards;
 
 package body Ballfield is
 
+   use SDL.Video.Surfaces;
+
+   procedure Debug (Text : String);
+   --  Print out debug Text to standard output.
+
+--   procedure Clean_Alpha (Work : out Surface;
+--                          S    :     Surface);
+   --  Bump areas of low and high alpha to 0% or 100%
+   --  respectively, just in case the graphics contains
+   --  "alpha noise".
+
+   procedure Load_Zoomed (Sprites   : out Surface;
+                          File_Name :     String;
+                          Alpha     :     Boolean);
+   --  Load and convert an antialiazed, zoomed set of sprites.
+
+   procedure Print_Num (Dst   : in out Surface;
+                        Font  :        Surface;
+                        X, Y  :        Integer;
+                        Value :        Float);
+   --  Render Value to position (X, Y) on Destin surface with Font.
+
+   type Koord_Type is new Integer;
+
+   procedure Ballfield_Init (BF : out Ballfield_Type);
+   procedure Ballfield_Free (BF : in out Ballfield_Type);
+   procedure Ballfield_Init_Frames (BF : in out Ballfield_Type);
+   procedure Ballfield_Load_Gfx (Bf        : in out Ballfield_Type;
+                                 File_Name :        String;
+                                 Color     :        Color_Type);
+   procedure Ballfield_Move (BF : in out Ballfield_Type;
+                             Dx, Dy, Dz : Koord_Type);
+   procedure Ballfield_Render (BF     : in out Ballfield_Type;
+                               Screen : in out Surface);
+
+   procedure Tiled_Back (Back   :        Surface;
+                         Screen : in out Surface;
+                         Xo, Yo :        Integer);
+   --  Draw tiled background image with offset.
+
+   --
+   --
+   --
+
    procedure Debug (Text : String) is
    begin
       Ada.Text_IO.Put_Line (Text);
    end Debug;
 
-   use SDL.Video.Surfaces;
-
-   ----------------------------
-   -- General tool functions --
-   ----------------------------
-
    -----------------
    -- Clean_Alpha --
    -----------------
-
-   --  Bump areas of low and high alpha to 0% or 100%
-   --  respectively, just in case the graphics contains
-   --  "alpha noise".
 
 --     procedure Clean_Alpha (Work : out surface;
 --                            S    :     Surface)
@@ -110,9 +144,6 @@ package body Ballfield is
    -- Load_Zoomed --
    -----------------
 
-   --
-   --  Load and convert an antialiazed, zoomed set of sprites.
-   --
    procedure Load_Zoomed (Sprites   : out Surface;
                           File_Name :     String;
                           Alpha     :     Boolean)
@@ -121,8 +152,6 @@ package body Ballfield is
       Temp    : SDL.Video.Surfaces.Surface;
    begin
       SDL.Images.IO.Create (Temp, File_Name);
---    if(!temp)
---            return NULL;
 
       Sprites := Temp;
       --  SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
@@ -231,10 +260,6 @@ package body Ballfield is
 
    end Print_Num;
 
-   ---------------------------
-   -- ballfield_t functions --
-   ---------------------------
-
    ----------------
    -- Initialize --
    ----------------
@@ -314,25 +339,14 @@ package body Ballfield is
    -- Load_Gfx --
    --------------
 
-   procedure Ballfield_Load_Gfx (Bf    : in out Ballfield_Type;
-                                 Name  :        String;
-                                 Color :        Color_Type) is
+   procedure Ballfield_Load_Gfx (Bf        : in out Ballfield_Type;
+                                 File_Name :        String;
+                                 Color     :        Color_Type) is
    begin
       Load_Zoomed (Bf.Gfx (Color),
-                   File_Name => Name,
+                   File_Name => File_Name,
                    Alpha     => Bf.Use_Alpha);
-
---    if(!bf->gfx[color])
---            return -2;
-
---    if(!bf->frames)
---            return ballfield_init_frames(bf);
---      Ballfield_Init_Frames (Bf);
-
---    return 0;
    end Ballfield_Load_Gfx;
-
-   type Koord_Type is new Integer;
 
    ----------
    -- Move --
@@ -353,7 +367,7 @@ package body Ballfield is
    -- Render --
    ------------
 
-   procedure Ballfield_Render (BF : in out Ballfield_Type;
+   procedure Ballfield_Render (BF     : in out Ballfield_Type;
                                Screen : in out Surface)
    is
       use SDL.C;
@@ -416,9 +430,7 @@ package body Ballfield is
    ---------------
    -- Tile_Back --
    ---------------
-   --
-   --  Draw tiled background image with offset.
-   --
+
    procedure Tiled_Back (Back   :        Surface;
                          Screen : in out Surface;
                          Xo, Yo :        Integer)
