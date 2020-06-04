@@ -34,16 +34,18 @@ package Ballfield is
    is array (Color_Type)
    of SDL.Video.Surfaces.Surface;
 
+   type Frame_Index is new Natural;
+
    type Rectangle_Array
-   is array (Natural range <>)
+   is array (Frame_Index range <>)
    of SDL.Video.Rectangles.Rectangle;
 
-   type Rectangle_Access is access all Rectangle_Array;
+   type Frame_Array is access all Rectangle_Array;
 
    type Ballfield_Type is
       record
         Points    : Point_Array;
-        Frames    : Rectangle_Access;
+        Frames    : Frame_Array;
         Gfx       : Surface_Array;
         Use_Alpha : Boolean;
       end record;

@@ -295,8 +295,8 @@ package body Ballfield is
       J     : int          := 0;
       Width : constant int := Field.Gfx (Blue).Size.Width;
 
-      subtype Index_Range is Natural
-      range 0 .. Natural (Width) - 1;
+      subtype Index_Range is Frame_Index
+      range 0 .. Frame_Index (Width) - 1;
 
    begin
       --
@@ -372,31 +372,38 @@ package body Ballfield is
    begin
 
       --  Render all balls in back->front order.
-      for I in Ball_Index loop
+      for Index in Ball_Index loop
          declare
             use SDL.C;
-            R : SDL.Video.Rectangles.Rectangle;
-            F : Integer;
-            Z : Integer;
+            R     : SDL.Video.Rectangles.Rectangle;
+            Frame : Frame_Index;
+            FI    : Integer;
+            Z     : Integer;
          begin
             Z := Field.Points (J).Z;
             Z := Z + 50;
 
-            F := Integer ((Field.Frames (0).Width / 2**12) + 100000) / Z;
-            F := Integer (Field.Frames (0).Width) - F;
-            F := Integer'Max (0, F);
-            F := Integer'Min (F, Integer (Field.Frames (0).Width) - 1);
+            FI := Integer ((Field.Frames (0).Width / 2**12) + 100000) / Z;
+            FI := Integer (Field.Frames (0).Width) - FI;
+            FI := Integer'Max (0, FI);
+            FI := Integer'Min (FI, Integer (Field.Frames (0).Width) - 1);
+            Frame := Frame_Index (FI);
 
             Z := Z / 2**7;
             Z := Z + 1;
+
             R.X := int (Field.Points (J).X - 16#10000#) / int (Z);
             R.Y := int (Field.Points (J).Y - 16#10000#) / int (Z);
-            R.X := R.X + (Screen.Size.Width  - Field.Frames (F).Width) / 2;
-            R.Y := R.Y + (Screen.Size.Height - Field.Frames (F).Height) / 2;
+            R.X := R.X + (Screen.Size.Width  - Field.Frames (Frame).Width) / 2;
+            R.Y := R.Y + (Screen.Size.Height - Field.Frames (Frame).Height) / 2;
+
             Screen.Blit (Source      => Field.Gfx (Field.Points (J).C),
-                         Source_Area => Field.Frames (F),
+                         Source_Area => Field.Frames (Frame),
                          Self_Area   => R);
-            J := (if J > 0 then J - 1 else Ball_Index'Last);
+
+            J := (if J > 0
+                    then J - 1
+                    else Ball_Index'Last);
          end;
       end loop;
    end Ballfield_Render;
