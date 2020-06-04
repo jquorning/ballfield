@@ -35,11 +35,12 @@ package Ballfield is
 --   type Frame_Array   is array (Positive range <>) of SDL.Video.Rectangles.Rectangle;
 --   type Frame_Access  is access all Frame_Array;
    type Rectangle_Array is array (Natural range <>) of SDL.Video.Rectangles.Rectangle;
+   type Rectangle_Access is access all Rectangle_Array;
 
    type Ballfield_Type is
       record
         Points    : Point_Array;
-        Frames    : access Rectangle_Array; -- SDL.Video.Rectangles.Rectangle_Arrays;
+        Frames    : Rectangle_Access; -- SDL.Video.Rectangles.Rectangle_Arrays;
         --Frames    : Frame_Access; --SDL.Video.Rectangles.Rectangle; --SDL_Rect   *frames;
         --Frames    : SDL.Video.Rectangles.Rectangle; --SDL_Rect   *frames;
         --Gfx       : Texture_Array;

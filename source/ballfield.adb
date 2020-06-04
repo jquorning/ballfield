@@ -8,6 +8,8 @@
 --  Contact author for permission if you want to use this
 --  software, or work derived from it, under other terms.
 
+with Ada.Text_IO;
+
 with Ada.Numerics.Elementary_Functions;
 with Ada.Numerics.Discrete_Random;
 
@@ -23,6 +25,11 @@ with SDL.Events.Events;
 with Interfaces; -- Needed for SDL.Video.Pixel_Formats;
 
 package body Ballfield is
+
+   procedure Debug (Text : String) is
+   begin
+      Ada.Text_IO.Put_Line (Text);
+   end Debug;
 
    use SDL.Video.Surfaces;
    use SDL.Video.Textures;
@@ -124,7 +131,9 @@ package body Ballfield is
       Sprites := Temp;
       --SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
 --      Clean_Alpha (Temp, Sprites);
-      Sprites.Finalize; -- SDL_FreeSurface (Sprites);
+
+      --      Sprites.Finalize; -- SDL_FreeSurface (Sprites);
+
 --      if(!temp)
 --      {
 --              fprintf(stderr, "Could not clean alpha!\n");
@@ -248,7 +257,7 @@ package body Ballfield is
    is
    begin
       for I in Color_Type loop
-         Bf.Gfx (I).Finalize;
+         null; --Bf.Gfx (I).Finalize;
       end loop;
    end Ballfield_Free;
 
@@ -306,7 +315,7 @@ package body Ballfield is
 
 --    if(!bf->frames)
 --            return ballfield_init_frames(bf);
-      Ballfield_Init_Frames (Bf);
+--      Ballfield_Init_Frames (Bf);
 
 --    return 0;
    end Ballfield_Load_Gfx;
@@ -379,8 +388,9 @@ package body Ballfield is
             Screen.Blit (Source      => Bf.Gfx (Bf.Points (J).C),
                          Source_Area => Bf.Frames (F),
                          Self_Area   => R);
-            J := J - 1;
-            if J < 0 then
+            if J > 0 then
+               J := J - 1;
+            else
                j := BALLS - 1;
             end if;
          end;
@@ -410,7 +420,7 @@ package body Ballfield is
       Xoc : Integer := Xo;
       Yoc : Integer := Yo;
    begin
-
+      Debug ("##3-1");
       if Xoc < 0 then
          Xoc := Xoc + Width * ((-Xoc) / Width + 1);
       end if;
@@ -418,7 +428,7 @@ package body Ballfield is
       if Yoc < 0 then
          Yoc := Yoc + Height * ((-Yoc) / Height + 1);
       end if;
-
+      Debug ("##3-2");
       Xoc := Xoc mod Width;
       Yoc := Yoc mod Height;
       Y  := -Yoc;
@@ -427,6 +437,7 @@ package body Ballfield is
          while X < Integer (Screen.Size.Width) loop
             R.X := int (X);
             R.Y := int (Y);
+            Debug ("##3-3");
             declare
                SA : SDL.Video.Rectangles.Rectangle := (0,0,0,0);
             begin
@@ -438,7 +449,7 @@ package body Ballfield is
          end loop;
          Y := Y + Height;
       end loop;
-
+      Debug ("##3-4");
    end Tiled_Back;
 
    ----------
@@ -456,7 +467,7 @@ package body Ballfield is
 
       Event  : SDL.Events.Events.Events;
 
-      bpp    : Integer := 0;
+--      bpp    : Integer := 0;
 --      flags  : Integer := SDL_DOUBLEBUF or SDL_SWSURFACE;
       Alpha  : Boolean := True;
       X_Offs : Integer := 0;
@@ -470,9 +481,9 @@ package body Ballfield is
 --      Dt : Float;
 --      I  : Integer;
 
-      FPS : float := 0.0;
-      FPS_Count : Integer := 0;
-      FPS_start : Integer := 0;
+--        FPS : float := 0.0;
+--        FPS_Count : Integer := 0;
+--        FPS_start : Integer := 0;
 
       X_Speed, Y_Speed, Z_Speed : Float;
 
@@ -528,8 +539,14 @@ package body Ballfield is
       --  Load and prepare balls...
       --
       Balls.Use_Alpha := Alpha;
-      Ballfield_Load_Gfx (balls, "blueball.png", 0);
-      Ballfield_Load_Gfx (balls, "redball.png",  1);
+      Debug ("##1-1");
+      Ballfield_Load_Gfx (Balls, "assets/blueball.png", 0);
+      Debug ("##1-2");
+      Ballfield_Load_Gfx (Balls, "assets/redball.png",  1);
+      Debug ("##1-3");
+      Ballfield_Init_Frames (Balls);
+      Debug ("##1-4");
+
 --      {
 --              fprintf(stderr, "Could not load balls!\n");
 --              exit(-1);
@@ -538,14 +555,15 @@ package body Ballfield is
       --
       --  Load background image
       --
-      SDL.Images.IO.Create (Temp_Image, "redbluestars.png");
---      if(!temp_image)
+      SDL.Images.IO.Create (Temp_Image, "assets/redbluestars.png");
+      Debug ("##1-5");
+      --      if(!temp_image)
 --      {
 --              fprintf(stderr, "Could not load background!\n");
 --              exit(-1);
 --      }
 
-
+      Back := Temp_Image; -- JQ
 --      Back := SDL_DisplayFormat(temp_image);
 
 
@@ -554,8 +572,9 @@ package body Ballfield is
       --
       --  Load logo
       --
-      SDL.Images.IO.Create (Temp_Image, "logo.bmp");
---      if(!temp_image)
+      SDL.Images.IO.Create (Temp_Image, "assets/logo.bmp");
+      Debug ("##1-6");
+      --      if(!temp_image)
 --      {
 --              fprintf(stderr, "Could not load logo!\n");
 --              exit(-1);
@@ -564,14 +583,16 @@ package body Ballfield is
 --      SDL_SetColorKey (temp_image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
 --                      SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      logo := SDL_DisplayFormat (temp_image);
+      Logo := Temp_Image; -- JQ
 
       --SDL_FreeSurface(temp_image);
 
       --
       --  Load font
       --
-      SDL.Images.IO.Create (Temp_Image, "font7x10.bmp");
---      if(!temp_image)
+      SDL.Images.IO.Create (Temp_Image, "assets/font7x10.bmp");
+      Debug ("##1-7");
+      --      if(!temp_image)
 --      {
 --              fprintf(stderr, "Could not load font!\n");
 --              exit(-1);
@@ -581,7 +602,9 @@ package body Ballfield is
 --                       SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      font := SDL_DisplayFormat (temp_image);
 
-      Temp_Image.Finalize;
+--      Temp_Image.Finalize;
+
+      Debug ("##1-8");
 
 --      Last_Avg_Tick := SDL_GetTicks;
 --      Last_Tick     := SDL_GetTicks;
@@ -600,10 +623,12 @@ package body Ballfield is
 --           Last_Tick := Tick;
 
          --  Background image
+         Debug ("##2-1");
          Tiled_Back (Back, Screen, X_Offs / 2**11, Y_Offs / 2**11);
-
+         Debug ("##2-2");
          --  Ballfield
          Ballfield_Render (Balls, Screen);
+         Debug ("##2-3");
 
          --  Logo
          declare
@@ -612,11 +637,12 @@ package body Ballfield is
          begin
             R.X := 2;
             R.Y := 2;
+            Debug ("##2-4");
             Screen.Blit (Source      => Logo,
                          Source_Area => R,
                          Self_Area   => Self_Area); -- SDL_BlitSurface (logo, NULL, Screen, R);
          end;
-
+         Debug ("##2-5");
 --           --  FPS counter
 --           if tick > fps_start + 500 then
 --              FPS       := Float (FPS_Count) * 1000.0 / (Tick - Fps_Start);
@@ -628,6 +654,7 @@ package body Ballfield is
 
          -- !!!
 --         SDL_Flip (screen);
+         Window.Update_Surface;
 
          --  Animate
          declare
@@ -650,6 +677,8 @@ package body Ballfield is
 --         T := T + Long_Float (Dt);
          delay 0.010;
       end loop;
+
+      Debug ("##Finalization part");
 
       Ballfield_Free (Balls);
 

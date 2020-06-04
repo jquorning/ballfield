@@ -7,12 +7,14 @@ project Ballfield is
   for Create_Missing_Dirs use "True";
   for Main use ("main.adb");
 
-  package Build is
-     for Default_Switches use ("-gnaty", "-gnatwa");--,
---                               "-F/Libary/Frameworks",
-  --                             "-framework", "SDL2",
-    --                           "-framework", "SDL2_image");
-  end Build;
+--  package Build is
+--     for Default_Switches use ("-gnaty", "-gnatwa");
+--  end Build;
+
+  package Compiler is
+     for Default_Switches ("Ada") use (--"-gnaty",
+ "-gnatwa", "-gnatVa");
+  end Compiler;
 
   package Linker is
      for Default_Switches ("Ada") use ("-F/Library/Frameworks",
