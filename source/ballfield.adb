@@ -150,11 +150,14 @@ package body Ballfield is
                           Alpha     :     Boolean)
    is
 --      Sprites : SDL.Video.Surfaces.Surface;
-      Temp    : SDL.Video.Surfaces.Surface;
+--      Temp    : SDL.Video.Surfaces.Surface;
    begin
-      SDL.Images.IO.Create (Temp, File_Name);
+--      SDL.Images.IO.Create (Temp, File_Name);
+      SDL.Images.IO.Create (Sprites, File_Name);
 
-      Sprites := Temp;
+
+--      Sprites := Temp;
+
       --  SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
 --      Clean_Alpha (Temp, Sprites);
 
@@ -348,40 +351,41 @@ package body Ballfield is
    procedure Ballfield_Render (Field     : in out Ballfield_Type;
                                Screen : in out Surface)
    is
-      use SDL.C;
-      J : Ball_Index;
-      Z : Integer;
-   begin
-      --
-      --  Find the ball with the highest Z.
-      --
-      Z := 0;
-      J := 0;
-      for I in Ball_Index loop
-         if Field.Points (I).Z > Z then
-            J := I;
-            Z := Field.Points (I).Z;
-         end if;
-      end loop;
 
-      --
+      function Find_Z_Maximum return Ball_Index;
+      --  Find the ball with the highest Z.
+
+      function Find_Z_Maximum return Ball_Index is
+         J_High : Ball_Index := 0;
+         Z_High : Integer    := 0;
+      begin
+         for Index in Ball_Index loop
+            if Field.Points (Index).Z > Z_High then
+               J_High := Index;
+               Z_High := Field.Points (Index).Z;
+            end if;
+         end loop;
+         return J_High;
+      end Find_Z_Maximum;
+
+      J : Ball_Index := Find_Z_Maximum;
+   begin
+
       --  Render all balls in back->front order.
-      --
       for I in Ball_Index loop
          declare
+            use SDL.C;
             R : SDL.Video.Rectangles.Rectangle;
             F : Integer;
+            Z : Integer;
          begin
             Z := Field.Points (J).Z;
             Z := Z + 50;
 
             F := Integer ((Field.Frames (0).Width / 2**12) + 100000) / Z;
             F := Integer (Field.Frames (0).Width) - F;
-            if F < 0 then
-               F := 0;
-            elsif F > Integer (Field.Frames (0).Width) - 1 then
-               F := Integer (Field.Frames (0).Width) - 1;
-            end if;
+            F := Integer'Max (0, F);
+            F := Integer'Min (F, Integer (Field.Frames (0).Width) - 1);
 
             Z := Z / 2**7;
             Z := Z + 1;
@@ -392,11 +396,7 @@ package body Ballfield is
             Screen.Blit (Source      => Field.Gfx (Field.Points (J).C),
                          Source_Area => Field.Frames (F),
                          Self_Area   => R);
-            if J > 0 then
-               J := J - 1;
-            else
-               J := Ball_Index'Last;
-            end if;
+            J := (if J > 0 then J - 1 else Ball_Index'Last);
          end;
       end loop;
    end Ballfield_Render;
