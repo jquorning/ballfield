@@ -247,7 +247,6 @@ package body Ballfield is
 
    procedure Ballfield_Init (Field : out Ballfield_Type) is
 
-      Ball_Types : constant := Ball_Index'Last - Ball_Index'First + 1;
       package Random_Integers
       is new Ada.Numerics.Discrete_Random (Integer);
       use Random_Integers;
@@ -260,7 +259,7 @@ package body Ballfield is
 
          Field.Points (I).X := Random (Gen) mod 16#20000#;
          Field.Points (I).Y := Random (Gen) mod 16#20000#;
-         Field.Points (I).Z := 16#20000# * Integer (I) / Ball_Types;
+         Field.Points (I).Z := 16#20000# * Integer (I) / Ball_Index'Modulus;
 
          if Random (Gen) mod 100 > 80 then
             Field.Points (I).C := Red;
@@ -375,35 +374,40 @@ package body Ballfield is
       for Index in Ball_Index loop
          declare
             use SDL.C;
-            R     : SDL.Video.Rectangles.Rectangle;
+
+            Ball_Width : constant Integer := Integer (Field.Frames (0).Width);
             Frame : Frame_Index;
             FI    : Integer;
             Z     : Integer;
          begin
-            Z := Field.Points (J).Z;
-            Z := Z + 50;
+            Z := Field.Points (J).Z + 50;
 
-            FI := Integer ((Field.Frames (0).Width / 2**12) + 100000) / Z;
-            FI := Integer (Field.Frames (0).Width) - FI;
+            FI := ((Ball_Width / 2**12) + 100000) / Z;
+            FI := Ball_Width - FI;
             FI := Integer'Max (0, FI);
-            FI := Integer'Min (FI, Integer (Field.Frames (0).Width) - 1);
+            FI := Integer'Min (FI, Ball_Width - 1);
             Frame := Frame_Index (FI);
 
-            Z := Z / 2**7;
-            Z := Z + 1;
+            Z := Z / 2**7 + 1;
 
-            R.X := int (Field.Points (J).X - 16#10000#) / int (Z);
-            R.Y := int (Field.Points (J).Y - 16#10000#) / int (Z);
-            R.X := R.X + (Screen.Size.Width  - Field.Frames (Frame).Width) / 2;
-            R.Y := R.Y + (Screen.Size.Height - Field.Frames (Frame).Height) / 2;
+            declare
+               use SDL.Video.Rectangles;
 
-            Screen.Blit (Source      => Field.Gfx (Field.Points (J).C),
-                         Source_Area => Field.Frames (Frame),
-                         Self_Area   => R);
+               X_Some : constant int := int (Field.Points (J).X - 16#10000#) / int (Z);
+               Y_Some : constant int := int (Field.Points (J).Y - 16#10000#) / int (Z);
+               X_Half : constant int := (Screen.Size.Width  - Field.Frames (Frame).Width) / 2;
+               Y_Half : constant int := (Screen.Size.Height - Field.Frames (Frame).Height) / 2;
 
-            J := (if J > 0
-                    then J - 1
-                    else Ball_Index'Last);
+               Rect   : Rectangle    := (X      => X_Some + X_Half,
+                                         Y      => Y_Some + Y_Half,
+                                         others => 0);
+            begin
+               Screen.Blit (Source      => Field.Gfx (Field.Points (J).C),
+                            Source_Area => Field.Frames (Frame),
+                            Self_Area   => Rect);
+            end;
+
+            J := J - 1;  -- Modulus type
          end;
       end loop;
    end Ballfield_Render;

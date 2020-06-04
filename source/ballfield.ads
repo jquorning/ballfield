@@ -18,7 +18,7 @@ package Ballfield is
    procedure Main;
 
    --  Definitions
-   type Ball_Index is range 0 .. 199;
+   type Ball_Index is mod 200;
    type Color_Type is (Blue, Red);
 
    type Point_Type is

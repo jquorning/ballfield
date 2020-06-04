@@ -13,7 +13,7 @@ project Ballfield is
 
   package Compiler is
      for Default_Switches ("Ada") use
-         ("-gnaty", "-gnatwa", "-gnatVa");
+         ("-gnatyyM99", "-gnatwa", "-gnatVa");
   end Compiler;
 
   package Linker is
