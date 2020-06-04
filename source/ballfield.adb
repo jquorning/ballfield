@@ -257,9 +257,9 @@ package body Ballfield is
          BF.Points (I).Z := 16#20000# * Integer (I) / Ball_Types;
 
          if Random (Gen) mod 100 > 80 then
-            BF.Points (I).C := 1;
+            BF.Points (I).C := Red;
          else
-            BF.Points (I).C := 0;
+            BF.Points (I).C := Blue;
          end if;
 
       end loop;
@@ -287,7 +287,7 @@ package body Ballfield is
       use SDL.C;
 
       J     : int          := 0;
-      Width : constant int := BF.Gfx (0).Size.Width;
+      Width : constant int := BF.Gfx (Blue).Size.Width;
 
       subtype Index_Range is Natural
       range 0 .. Natural (Width) - 1;
@@ -509,8 +509,8 @@ package body Ballfield is
       --  Load and prepare balls...
       Balls.Use_Alpha := Alpha;
 
-      Ballfield_Load_Gfx (Balls, Assets_Path & "blueball.png", 0);
-      Ballfield_Load_Gfx (Balls, Assets_Path & "redball.png",  1);
+      Ballfield_Load_Gfx (Balls, Assets_Path & "blueball.png", Blue);
+      Ballfield_Load_Gfx (Balls, Assets_Path & "redball.png",  Red);
       Ballfield_Init_Frames (Balls);
 
       --  Load background image

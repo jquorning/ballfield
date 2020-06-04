@@ -18,10 +18,8 @@ package Ballfield is
    procedure Main;
 
    --  Definitions
---   BALLS  : constant := 200;
---   COLORS : constant := 2;
    type Ball_Index is range 0 .. 199;
-   type Color_Type is range 0 .. 1;
+   type Color_Type is (Blue, Red);
 
    type Point_Type is
       record
