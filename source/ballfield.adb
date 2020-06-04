@@ -12,6 +12,7 @@ with Ada.Text_IO;
 
 with Ada.Numerics.Elementary_Functions;
 with Ada.Numerics.Discrete_Random;
+with Ada.Real_Time;
 
 with SDL.Video.Windows.Makers;
 --with SDL.Video.Renderers.Makers;
@@ -460,10 +461,13 @@ package body Ballfield is
 
    procedure Main is
 
-      Balls            : Ballfield_Type;
-      Window           : SDL.Video.Windows.Window;
-      Screen           : SDL.Video.Surfaces.Surface;
-      Back, Logo, Font : SDL.Video.Surfaces.Surface;
+      Balls  : Ballfield_Type;
+      Window : SDL.Video.Windows.Window;
+
+      Screen : Surface;
+      Back   : Surface;
+      Logo   : Surface;
+      Font   : Surface;
 
       Event  : SDL.Events.Events.Events;
 
@@ -473,17 +477,16 @@ package body Ballfield is
       X_Offs : Integer := 0;
       Y_Offs : Integer := 0;
 
---        Tick          : Long_Integer;
---        Last_Tick     : Long_Integer;
---        Last_Avg_Tick : Long_Integer;
+      Tick          : Ada.Real_Time.Time;
+      Last_Tick     : Ada.Real_Time.Time;
+      Last_Avg_Tick : Ada.Real_Time.Time;
 
       T  : Long_Float := 0.000;
-      Dt : Float;
---      I  : Integer;
+      Dt : Duration;
 
-      FPS : Float := 0.0;
---        FPS_Count : Integer := 0;
---        FPS_start : Integer := 0;
+      FPS_Count : Integer := 0;
+      FPS_Start : Ada.Real_Time.Time := Ada.Real_Time.Clock;
+      FPS       : Float := 0.0;
 
       X_Speed, Y_Speed, Z_Speed : Float;
 
@@ -562,8 +565,8 @@ package body Ballfield is
 
       Debug ("##1-8");
 
---      Last_Avg_Tick := SDL_GetTicks;
---      Last_Tick     := SDL_GetTicks;
+      Last_Avg_Tick := Ada.Real_Time.Clock;
+      Last_Tick     := Last_Avg_Tick;
       loop
          declare
             use SDL.Events;
@@ -574,11 +577,14 @@ package body Ballfield is
             end if;
          end;
 
---           --  Timing
---           Tick      := SDL_GetTicks;
---         Dt        := (Tick - Last_Tick) * 0.001;
---           Last_Tick := Tick;
-         Dt := 0.010;
+         --           --  Timing
+         declare
+            use Ada.Real_Time;
+         begin
+            Tick      := Ada.Real_Time.Clock;
+            Dt        := To_Duration (Tick - Last_Tick);
+            Last_Tick := Tick;
+         end;
 
          --  Background image
          Tiled_Back (Back, Screen, X_Offs / 2**11, Y_Offs / 2**11);
@@ -597,15 +603,19 @@ package body Ballfield is
                          Self_Area   => Destin_Area);
          end;
 
---           --  FPS counter
---           if tick > fps_start + 500 then
---              FPS       := Float (FPS_Count) * 1000.0 / (Tick - Fps_Start);
---              FPS_Count := 0;
---              FPS_Start := tick;
---           end if;
-         FPS := 987.32; -- JQ !!!
-         Print_Num (Screen, Font, Integer (Screen.Size.Width) - 137, Integer (Screen.Size.Height) - 12, FPS);
---           FPS_Count := FPS_Count + 1;
+         --  FPS counter
+         declare
+            use Ada.Real_Time;
+         begin
+            if Tick > FPS_Start + Milliseconds (500) then
+               FPS       := Float (FPS_Count) / Float (To_Duration (Tick - FPS_Start));
+               FPS_Count := 0;
+               FPS_Start := Tick;
+            end if;
+
+            Print_Num (Screen, Font, Integer (Screen.Size.Width) - 37, Integer (Screen.Size.Height) - 12, FPS);
+            FPS_Count := FPS_Count + 1;
+         end;
 
          -- !!!
 --         SDL_Flip (screen);
@@ -631,7 +641,7 @@ package body Ballfield is
          Y_Offs := Y_Offs - Integer (Y_Speed);
 
          T := T + Long_Float (Dt);
-         delay 0.010;
+         --delay 0.010;
       end loop;
 
       Ballfield_Free (Balls);
