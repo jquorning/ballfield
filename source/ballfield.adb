@@ -38,23 +38,23 @@ package body Ballfield is
                           Alpha     :     Boolean);
    --  Load and convert an antialiazed, zoomed set of sprites.
 
-   procedure Print_Num (Dst   : in out Surface;
-                        Font  :        Surface;
-                        X, Y  :        Integer;
-                        Value :        Float);
+   procedure Print_Num (Destin : in out Surface;
+                        Font   :        Surface;
+                        X, Y   :        Integer;
+                        Value  :        Float);
    --  Render Value to position (X, Y) on Destin surface with Font.
 
    type Koord_Type is new Integer;
 
-   procedure Ballfield_Init (BF : out Ballfield_Type);
-   procedure Ballfield_Free (BF : in out Ballfield_Type);
-   procedure Ballfield_Init_Frames (BF : in out Ballfield_Type);
-   procedure Ballfield_Load_Gfx (Bf        : in out Ballfield_Type;
+   procedure Ballfield_Init (Field : out Ballfield_Type);
+   procedure Ballfield_Free (Field : in out Ballfield_Type);
+   procedure Ballfield_Init_Frames (Field : in out Ballfield_Type);
+   procedure Ballfield_Load_Gfx (Field     : in out Ballfield_Type;
                                  File_Name :        String;
                                  Color     :        Color_Type);
-   procedure Ballfield_Move (BF : in out Ballfield_Type;
-                             Dx, Dy, Dz : Koord_Type);
-   procedure Ballfield_Render (BF     : in out Ballfield_Type;
+   procedure Ballfield_Move (Field      : in out Ballfield_Type;
+                             Dx, Dy, Dz :        Koord_Type);
+   procedure Ballfield_Render (Field  : in out Ballfield_Type;
                                Screen : in out Surface);
 
    procedure Tiled_Back (Back   :        Surface;
@@ -189,10 +189,10 @@ package body Ballfield is
    -- Print_Num --
    ---------------
 
-   procedure Print_Num (Dst   : in out Surface;
-                        Font  :        Surface;
-                        X, Y  :        Integer;
-                        Value :        Float)
+   procedure Print_Num (Destin : in out Surface;
+                        Font   :        Surface;
+                        X, Y   :        Integer;
+                        Value  :        Float)
    is
       use SDL.Video.Rectangles;
       Buf  : array (0 .. 9) of Natural;
@@ -252,9 +252,9 @@ package body Ballfield is
             To.X := int (X + Pos * 7);
             To.Y := int (Y);
             From.X := int (Buf (Pos) * 7);
-            Dst.Blit (Source      => Font,
-                      Source_Area => From,
-                      Self_Area   => To);
+            Destin.Blit (Source      => Font,
+                         Source_Area => From,
+                         Self_Area   => To);
          end loop;
       end;
 
@@ -264,7 +264,7 @@ package body Ballfield is
    -- Initialize --
    ----------------
 
-   procedure Ballfield_Init (BF : out Ballfield_Type) is
+   procedure Ballfield_Init (Field : out Ballfield_Type) is
 
       Ball_Types : constant := Ball_Index'Last - Ball_Index'First + 1;
       package Random_Integers
@@ -277,14 +277,14 @@ package body Ballfield is
 
       for I in Ball_Index loop
 
-         BF.Points (I).X := Random (Gen) mod 16#20000#;
-         BF.Points (I).Y := Random (Gen) mod 16#20000#;
-         BF.Points (I).Z := 16#20000# * Integer (I) / Ball_Types;
+         Field.Points (I).X := Random (Gen) mod 16#20000#;
+         Field.Points (I).Y := Random (Gen) mod 16#20000#;
+         Field.Points (I).Z := 16#20000# * Integer (I) / Ball_Types;
 
          if Random (Gen) mod 100 > 80 then
-            BF.Points (I).C := Red;
+            Field.Points (I).C := Red;
          else
-            BF.Points (I).C := Blue;
+            Field.Points (I).C := Blue;
          end if;
 
       end loop;
@@ -294,9 +294,9 @@ package body Ballfield is
    -- Free --
    ----------
 
-   procedure Ballfield_Free (BF : in out Ballfield_Type)
+   procedure Ballfield_Free (Field : in out Ballfield_Type)
    is
-      pragma Unreferenced (BF);
+      pragma Unreferenced (Field);
    begin
       for I in Color_Type loop
          null; --  Bf.Gfx (I).Finalize;
@@ -307,12 +307,12 @@ package body Ballfield is
    -- Initialize_Frames --
    -----------------------
 
-   procedure Ballfield_Init_Frames (BF : in out Ballfield_Type)
+   procedure Ballfield_Init_Frames (Field : in out Ballfield_Type)
    is
       use SDL.C;
 
       J     : int          := 0;
-      Width : constant int := BF.Gfx (Blue).Size.Width;
+      Width : constant int := Field.Gfx (Blue).Size.Width;
 
       subtype Index_Range is Natural
       range 0 .. Natural (Width) - 1;
@@ -321,11 +321,11 @@ package body Ballfield is
       --
       --  Set up source rects for all frames
       --
-      BF.Frames := new Rectangle_Array'(Index_Range => <>);
+      Field.Frames := new Rectangle_Array'(Index_Range => <>);
 
       for I in Index_Range loop
 
-         BF.Frames (I) := (X      => 0,
+         Field.Frames (I) := (X      => 0,
                            Y      => J,
                            Width  => Width - int (I),
                            Height => Width - int (I));
@@ -339,23 +339,23 @@ package body Ballfield is
    -- Load_Gfx --
    --------------
 
-   procedure Ballfield_Load_Gfx (Bf        : in out Ballfield_Type;
+   procedure Ballfield_Load_Gfx (Field     : in out Ballfield_Type;
                                  File_Name :        String;
                                  Color     :        Color_Type) is
    begin
-      Load_Zoomed (Bf.Gfx (Color),
+      Load_Zoomed (Field.Gfx (Color),
                    File_Name => File_Name,
-                   Alpha     => Bf.Use_Alpha);
+                   Alpha     => Field.Use_Alpha);
    end Ballfield_Load_Gfx;
 
    ----------
    -- Move --
    ----------
 
-   procedure Ballfield_Move (BF : in out Ballfield_Type;
+   procedure Ballfield_Move (Field : in out Ballfield_Type;
                              Dx, Dy, Dz : Koord_Type) is
    begin
-      for Point of BF.Points loop
+      for Point of Field.Points loop
          Point := (X => (Point.X + Integer (Dx)) mod 16#20000#,
                    Y => (Point.Y + Integer (Dy)) mod 16#20000#,
                    Z => (Point.Z + Integer (Dz)) mod 16#20000#,
@@ -367,7 +367,7 @@ package body Ballfield is
    -- Render --
    ------------
 
-   procedure Ballfield_Render (BF     : in out Ballfield_Type;
+   procedure Ballfield_Render (Field     : in out Ballfield_Type;
                                Screen : in out Surface)
    is
       use SDL.C;
@@ -380,9 +380,9 @@ package body Ballfield is
       Z := 0;
       J := 0;
       for I in Ball_Index loop
-         if BF.Points (I).Z > Z then
+         if Field.Points (I).Z > Z then
             J := I;
-            Z := BF.Points (I).Z;
+            Z := Field.Points (I).Z;
          end if;
       end loop;
 
@@ -394,25 +394,25 @@ package body Ballfield is
             R : SDL.Video.Rectangles.Rectangle;
             F : Integer;
          begin
-            Z := BF.Points (J).Z;
+            Z := Field.Points (J).Z;
             Z := Z + 50;
 
-            F := Integer ((BF.Frames (0).Width / 2**12) + 100000) / Z;
-            F := Integer (BF.Frames (0).Width) - F;
+            F := Integer ((Field.Frames (0).Width / 2**12) + 100000) / Z;
+            F := Integer (Field.Frames (0).Width) - F;
             if F < 0 then
                F := 0;
-            elsif F > Integer (BF.Frames (0).Width) - 1 then
-               F := Integer (BF.Frames (0).Width) - 1;
+            elsif F > Integer (Field.Frames (0).Width) - 1 then
+               F := Integer (Field.Frames (0).Width) - 1;
             end if;
 
             Z := Z / 2**7;
             Z := Z + 1;
-            R.X := int (BF.Points (J).X - 16#10000#) / int (Z);
-            R.Y := int (BF.Points (J).Y - 16#10000#) / int (Z);
-            R.X := R.X + (Screen.Size.Width  - BF.Frames (F).Width) / 2;
-            R.Y := R.Y + (Screen.Size.Height - BF.Frames (F).Height) / 2;
-            Screen.Blit (Source      => BF.Gfx (BF.Points (J).C),
-                         Source_Area => BF.Frames (F),
+            R.X := int (Field.Points (J).X - 16#10000#) / int (Z);
+            R.Y := int (Field.Points (J).Y - 16#10000#) / int (Z);
+            R.X := R.X + (Screen.Size.Width  - Field.Frames (F).Width) / 2;
+            R.Y := R.Y + (Screen.Size.Height - Field.Frames (F).Height) / 2;
+            Screen.Blit (Source      => Field.Gfx (Field.Points (J).C),
+                         Source_Area => Field.Frames (F),
                          Self_Area   => R);
             if J > 0 then
                J := J - 1;
