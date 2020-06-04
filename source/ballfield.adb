@@ -494,7 +494,6 @@ package body Ballfield is
 --                      bpp = atoi(&argv[i][1]);
 --      end loop;
 
---      Screen := SDL_SetVideoMode (SCREEN_W, SCREEN_H, bpp, flags);
       SDL.Video.Windows.Makers.Create (Window,
                                        Title    => "Ballfield",
                                        Position => (100, 100),
@@ -503,44 +502,31 @@ package body Ballfield is
                                        ); -- Flags => False); --Flags);
       Screen := Window.Get_Surface;
 --      SDL.Video.Renderers.Makers.Create (Renderer, Window, SDL.Video.Renderers.Present_V_Sync);
-      --      if(!screen)
---      {
---              fprintf(stderr, "Failed to open screen!\n");
---              exit(-1);
---      }
 
---      SDL_WM_SetCaption("Ballfield", "Ballfield");
 --      if(flags & SDL_FULLSCREEN)
 --              SDL_ShowCursor(0);
 
       Ballfield_Init (Balls);
---      if(!balls)
---      {
---              fprintf(stderr, "Failed to create ballfield!\n");
---              exit(-1);
---      }
 
-      --
       --  Load and prepare balls...
-      --
       Balls.Use_Alpha := Alpha;
 
-      Ballfield_Load_Gfx (Balls, "assets/blueball.png", 0);
-      Ballfield_Load_Gfx (Balls, "assets/redball.png",  1);
+      Ballfield_Load_Gfx (Balls, Assets_Path & "blueball.png", 0);
+      Ballfield_Load_Gfx (Balls, Assets_Path & "redball.png",  1);
       Ballfield_Init_Frames (Balls);
 
       --  Load background image
-      SDL.Images.IO.Create (Back, "assets/redbluestars.png");
+      SDL.Images.IO.Create (Back, Assets_Path & "redbluestars.png");
 --      Back := SDL_DisplayFormat(temp_image);
 
       --  Load logo
-      SDL.Images.IO.Create (Logo, "assets/logo.bmp");
+      SDL.Images.IO.Create (Logo, Assets_Path & "logo.bmp");
 --      SDL_SetColorKey (temp_image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
 --                      SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      logo := SDL_DisplayFormat (temp_image);
 
       --  Load font
-      SDL.Images.IO.Create (Font, "assets/font7x10.bmp");
+      SDL.Images.IO.Create (Font, Assets_Path & "font7x10.bmp");
 --      SDL_SetColorKey (Temp_Image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
 --                       SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      font := SDL_DisplayFormat (temp_image);
@@ -650,8 +636,7 @@ package body Ballfield is
       Font.Finalize;
 
       SDL.Finalise;
-
-      Debug ("##4-6");
+      Debug ("##End of Main");
    end Main;
 
 end Ballfield;

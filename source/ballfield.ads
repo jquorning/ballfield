@@ -9,14 +9,15 @@
 --  software, or work derived from it, under other terms.
 
 with SDL.Video.Surfaces;
-with SDL.Video.Textures;
 with SDL.Video.Rectangles;
 
 package Ballfield is
 
+   Assets_Path : constant String := "assets/";
+
    procedure Main;
 
-   --  Definitions...
+   --  Definitions
    BALLS  : constant := 200;
    COLORS : constant := 2;
    type Color_Type is range 0 .. Colors - 1;
@@ -24,27 +25,21 @@ package Ballfield is
 
    type Point_Type is
       record
-         X, Y, Z : Integer;  --  Position
-         C       : Color_Type; -- Natural;  --  Color
+         X, Y, Z : Integer;
+         C       : Color_Type;
       end record;
 
    --  Ballfield
-   type Point_Array   is array (Ball_Index)  of Point_Type;
-   type Surface_Array is array (Color_Type) of SDL.Video.Surfaces.Surface;
-   type Texture_Array is array (Color_Type) of SDL.Video.Textures.Texture;
---   type Frame_Array   is array (Positive range <>) of SDL.Video.Rectangles.Rectangle;
---   type Frame_Access  is access all Frame_Array;
-   type Rectangle_Array is array (Natural range <>) of SDL.Video.Rectangles.Rectangle;
+   type Point_Array      is array (Ball_Index)       of Point_Type;
+   type Surface_Array    is array (Color_Type)       of SDL.Video.Surfaces.Surface;
+   type Rectangle_Array  is array (Natural range <>) of SDL.Video.Rectangles.Rectangle;
    type Rectangle_Access is access all Rectangle_Array;
 
    type Ballfield_Type is
       record
         Points    : Point_Array;
-        Frames    : Rectangle_Access; -- SDL.Video.Rectangles.Rectangle_Arrays;
-        --Frames    : Frame_Access; --SDL.Video.Rectangles.Rectangle; --SDL_Rect   *frames;
-        --Frames    : SDL.Video.Rectangles.Rectangle; --SDL_Rect   *frames;
-        --Gfx       : Texture_Array;
-        Gfx       : Surface_Array; --SDL_Surface        *gfx[COLORS];
+        Frames    : Rectangle_Access;
+        Gfx       : Surface_Array;
         Use_Alpha : Boolean;
       end record;
 
