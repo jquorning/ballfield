@@ -469,27 +469,9 @@ package body Ballfield is
       Logo   : Surface;
       Font   : Surface;
 
-      Event  : SDL.Events.Events.Events;
-
 --      bpp    : Integer := 0;
 --      flags  : Integer := SDL_DOUBLEBUF or SDL_SWSURFACE;
       Alpha  : constant Boolean := True;
-      X_Offs : Integer := 0;
-      Y_Offs : Integer := 0;
-
-      Tick          : Ada.Real_Time.Time;
-      Last_Tick     : Ada.Real_Time.Time;
-      Last_Avg_Tick : Ada.Real_Time.Time;
-
-      T  : Long_Float := 0.000;
-      Dt : Duration;
-
-      FPS_Count : Integer := 0;
-      FPS_Start : Ada.Real_Time.Time := Ada.Real_Time.Clock;
-      FPS       : Float := 0.0;
-
-      X_Speed, Y_Speed, Z_Speed : Float;
-
    begin
       if not SDL.Initialise (SDL.Enable_Screen) then
          raise Program_Error with "Could not initialise SDL";
@@ -563,86 +545,103 @@ package body Ballfield is
 --                       SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      font := SDL_DisplayFormat (temp_image);
 
-      Debug ("##1-8");
+      Dynamic:
+      declare
+         X_Offs : Integer := 0;
+         Y_Offs : Integer := 0;
 
-      Last_Avg_Tick := Ada.Real_Time.Clock;
-      Last_Tick     := Last_Avg_Tick;
-      loop
-         declare
-            use SDL.Events;
-         begin
-            if Events.Poll (Event) then
-               exit when Event.Common.Event_Type = Quit;
-               exit when Event.Common.Event_Type = Keyboards.Key_Down;
-            end if;
-         end;
+         Tick      : Ada.Real_Time.Time;
+         Last_Tick : Ada.Real_Time.Time := Ada.Real_Time.Clock;
 
-         --           --  Timing
-         declare
-            use Ada.Real_Time;
-         begin
-            Tick      := Ada.Real_Time.Clock;
-            Dt        := To_Duration (Tick - Last_Tick);
-            Last_Tick := Tick;
-         end;
+         T  : Long_Float := 0.000;
+         Dt : Duration;
 
-         --  Background image
-         Tiled_Back (Back, Screen, X_Offs / 2**11, Y_Offs / 2**11);
+         FPS_Count : Integer := 0;
+         FPS_Start : Ada.Real_Time.Time := Ada.Real_Time.Clock;
+         FPS       : Float := 0.0;
 
-         --  Ballfield
-         Ballfield_Render (Balls, Screen);
+         X_Speed, Y_Speed, Z_Speed : Float;
+      begin
 
-         --  Logo
-         declare
-            use SDL.Video.Rectangles;
-            Destin_Area : Rectangle := (2, 2, 0, 0);
-            Source_Area : Rectangle := (0, 0, 0, 0);
-         begin
-            Screen.Blit (Source      => Logo,
-                         Source_Area => Source_Area,
-                         Self_Area   => Destin_Area);
-         end;
+         loop
+            declare
+               use SDL.Events;
+               Event : SDL.Events.Events.Events;
+            begin
+               if Events.Poll (Event) then
+                  exit when Event.Common.Event_Type = Quit;
+                  exit when Event.Common.Event_Type = Keyboards.Key_Down;
+               end if;
+            end;
 
-         --  FPS counter
-         declare
-            use Ada.Real_Time;
-         begin
-            if Tick > FPS_Start + Milliseconds (500) then
-               FPS       := Float (FPS_Count) / Float (To_Duration (Tick - FPS_Start));
-               FPS_Count := 0;
-               FPS_Start := Tick;
-            end if;
+            --  Timing
+            declare
+               use Ada.Real_Time;
+            begin
+               Tick      := Ada.Real_Time.Clock;
+               Dt        := To_Duration (Tick - Last_Tick);
+               Last_Tick := Tick;
+            end;
 
-            Print_Num (Screen, Font, Integer (Screen.Size.Width) - 37, Integer (Screen.Size.Height) - 12, FPS);
-            FPS_Count := FPS_Count + 1;
-         end;
+            --  Background image
+            Tiled_Back (Back, Screen, X_Offs / 2**11, Y_Offs / 2**11);
 
-         -- !!!
---         SDL_Flip (screen);
-         Window.Update_Surface;
+            --  Ballfield
+            Ballfield_Render (Balls, Screen);
+
+            --  Logo
+            declare
+               use SDL.Video.Rectangles;
+               Destin_Area : Rectangle := (2, 2, 0, 0);
+               Source_Area : Rectangle := (0, 0, 0, 0);
+            begin
+               Screen.Blit (Source      => Logo,
+                            Source_Area => Source_Area,
+                            Self_Area   => Destin_Area);
+            end;
+
+            --  FPS counter
+            declare
+               use Ada.Real_Time;
+            begin
+               if Tick > FPS_Start + Milliseconds (500) then
+                  FPS       := Float (FPS_Count) / Float (To_Duration (Tick - FPS_Start));
+                  FPS_Count := 0;
+                  FPS_Start := Tick;
+               end if;
+
+               Print_Num (Screen, Font,
+                          X     => Integer (Screen.Size.Width) - 37,
+                          Y     => Integer (Screen.Size.Height) - 12,
+                          Value => FPS);
+
+               FPS_Count := FPS_Count + 1;
+            end;
+
+            Window.Update_Surface;
 --         Renderer.Present;
 
-         --  Animate
-         declare
-            use Ada.Numerics.Elementary_Functions;
-            FT : constant Float := Float (T);
-         begin
-            X_Speed := 500.0 * Sin (FT * 0.37);
-            Y_Speed := 500.0 * Sin (FT * 0.53);
-            Z_Speed := 400.0 * Sin (FT * 0.21);
-         end;
+            --  Animate
+            declare
+               use Ada.Numerics.Elementary_Functions;
+               FT : constant Float := Float (T);
+            begin
+               X_Speed := 500.0 * Sin (FT * 0.37);
+               Y_Speed := 500.0 * Sin (FT * 0.53);
+               Z_Speed := 400.0 * Sin (FT * 0.21);
+            end;
 
-         Ballfield_Move (Balls,
-                         Koord_Type (X_Speed),
-                         Koord_Type (Y_Speed),
-                         Koord_Type (Z_Speed));
+            Ballfield_Move (Balls,
+                            Koord_Type (X_Speed),
+                            Koord_Type (Y_Speed),
+                            Koord_Type (Z_Speed));
 
-         X_Offs := X_Offs - Integer (X_Speed);
-         Y_Offs := Y_Offs - Integer (Y_Speed);
+            X_Offs := X_Offs - Integer (X_Speed);
+            Y_Offs := Y_Offs - Integer (Y_Speed);
 
-         T := T + Long_Float (Dt);
-         --delay 0.010;
-      end loop;
+            T := T + Long_Float (Dt);
+         end loop;
+      end Dynamic;
 
       Ballfield_Free (Balls);
 
