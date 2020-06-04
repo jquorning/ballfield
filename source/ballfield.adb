@@ -14,15 +14,15 @@ with Ada.Numerics.Elementary_Functions;
 with Ada.Numerics.Discrete_Random;
 
 with SDL.Video.Windows.Makers;
-with SDL.Video.Surfaces.Makers;
+--with SDL.Video.Surfaces.Makers;
 with SDL.Video.Renderers.Makers;
-with SDL.Video.Textures.Makers;
-with SDL.Video.Pixel_Formats;
+--with SDL.Video.Textures.Makers;
+--with SDL.Video.Pixel_Formats;
 
 with SDL.Images.IO;
 with SDL.Events.Events;
 
-with Interfaces; -- Needed for SDL.Video.Pixel_Formats;
+--with Interfaces; -- Needed for SDL.Video.Pixel_Formats;
 
 package body Ballfield is
 
@@ -32,7 +32,7 @@ package body Ballfield is
    end Debug;
 
    use SDL.Video.Surfaces;
-   use SDL.Video.Textures;
+--   use SDL.Video.Textures;
 
    ----------------------------
    -- General tool functions --
@@ -255,6 +255,7 @@ package body Ballfield is
 
    procedure Ballfield_Free (BF : in out Ballfield_Type)
    is
+      pragma Unreferenced (BF);
    begin
       for I in Color_Type loop
          null; --Bf.Gfx (I).Finalize;
@@ -267,14 +268,13 @@ package body Ballfield is
 
    procedure Ballfield_Init_Frames (BF : in out Ballfield_Type)
    is
-      use SDL.Video.Rectangles;
       use SDL.C;
 
       J     : int          := 0;
       Width : constant int := Bf.Gfx (0).Size.Width;
 
-      subtype Index_Range is Natural -- Size_T
-      range 0 .. Natural (Width) - 1; --size_t (Width) - 1;
+      subtype Index_Range is Natural
+      range 0 .. Natural (Width) - 1;
 
    begin
       --
@@ -409,37 +409,22 @@ package body Ballfield is
    --
    procedure Tiled_Back (Back   :        Surface;
                          Screen : in out Surface;
-                         Xo, Yo :        Integer)
-     -- not really in out
+                         Xo, Yo :        Natural)
    is
       use SDL.C;
-      Width  : constant Integer := Integer (Back.Size.Width);
-      Height : constant Integer := Integer (Back.Size.Height);
-      X, Y : Integer;
-      R    : SDL.Video.Rectangles.Rectangle;
-      Xoc : Integer := Xo;
-      Yoc : Integer := Yo;
+      Width  : constant Natural := Natural (Back.Size.Width);
+      Height : constant Natural := Natural (Back.Size.Height);
+      Xoc    : constant Natural := (Xo + Width  * ((-Xo) / Width + 1))  mod Width;
+      Yoc    : constant Natural := (Yo + Height * ((-Yo) / Height + 1)) mod Height;
+      X, Y   : Integer;
    begin
-      Debug ("##3-1");
-      if Xoc < 0 then
-         Xoc := Xoc + Width * ((-Xoc) / Width + 1);
-      end if;
-
-      if Yoc < 0 then
-         Yoc := Yoc + Height * ((-Yoc) / Height + 1);
-      end if;
-      Debug ("##3-2");
-      Xoc := Xoc mod Width;
-      Yoc := Yoc mod Height;
       Y  := -Yoc;
       while Y < Integer (Screen.Size.Height) loop
          X := -Xoc;
          while X < Integer (Screen.Size.Width) loop
-            R.X := int (X);
-            R.Y := int (Y);
-            Debug ("##3-3");
             declare
-               SA : SDL.Video.Rectangles.Rectangle := (0,0,0,0);
+               R  : SDL.Video.Rectangles.Rectangle := (int (X), int (Y), 0, 0);
+               SA : SDL.Video.Rectangles.Rectangle := (0, 0, 0, 0);
             begin
                Screen.Blit (Source      => Back,
                             Source_Area => SA,
@@ -449,7 +434,7 @@ package body Ballfield is
          end loop;
          Y := Y + Height;
       end loop;
-      Debug ("##3-4");
+
    end Tiled_Back;
 
    ----------
@@ -469,7 +454,7 @@ package body Ballfield is
 
 --      bpp    : Integer := 0;
 --      flags  : Integer := SDL_DOUBLEBUF or SDL_SWSURFACE;
-      Alpha  : Boolean := True;
+      Alpha  : constant Boolean := True;
       X_Offs : Integer := 0;
       Y_Offs : Integer := 0;
 
@@ -477,7 +462,7 @@ package body Ballfield is
 --        Last_Tick     : Long_Integer;
 --        Last_Avg_Tick : Long_Integer;
 
-      T  : Long_Float := 0.000;
+      T  : constant Long_Float := 0.000;
 --      Dt : Float;
 --      I  : Integer;
 
@@ -623,26 +608,22 @@ package body Ballfield is
 --           Last_Tick := Tick;
 
          --  Background image
-         Debug ("##2-1");
          Tiled_Back (Back, Screen, X_Offs / 2**11, Y_Offs / 2**11);
-         Debug ("##2-2");
+
          --  Ballfield
          Ballfield_Render (Balls, Screen);
-         Debug ("##2-3");
 
          --  Logo
          declare
-            R : SDL.Video.Rectangles.Rectangle;
-            Self_Area : SDL.Video.Rectangles.Rectangle := (0,0,0,0);
+            use SDL.Video.Rectangles;
+            Destin_Area : Rectangle := (2, 2, 0, 0);
+            Source_Area : Rectangle := (0, 0, 0, 0);
          begin
-            R.X := 2;
-            R.Y := 2;
-            Debug ("##2-4");
             Screen.Blit (Source      => Logo,
-                         Source_Area => R,
-                         Self_Area   => Self_Area); -- SDL_BlitSurface (logo, NULL, Screen, R);
+                         Source_Area => Source_Area,
+                         Self_Area   => Destin_Area);
          end;
-         Debug ("##2-5");
+
 --           --  FPS counter
 --           if tick > fps_start + 500 then
 --              FPS       := Float (FPS_Count) * 1000.0 / (Tick - Fps_Start);
@@ -678,15 +659,22 @@ package body Ballfield is
          delay 0.010;
       end loop;
 
-      Debug ("##Finalization part");
-
+      Debug ("##4-1");
       Ballfield_Free (Balls);
 
+      Debug ("##4-2");
       Back.Finalize;
-      Logo.finalize;
-      Font.finalize;
 
+      Debug ("##4-3");
+      Logo.finalize;
+
+      Debug ("##4-4");
+      Font.Finalize;
+
+      Debug ("##4-5");
       SDL.Finalise;
+
+      Debug ("##4-6");
    end Main;
 
 end Ballfield;

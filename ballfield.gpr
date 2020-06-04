@@ -7,13 +7,13 @@ project Ballfield is
   for Create_Missing_Dirs use "True";
   for Main use ("main.adb");
 
---  package Build is
---     for Default_Switches use ("-gnaty", "-gnatwa");
---  end Build;
+  package Builder is
+     for Executable ("main.adb") use "ballfield";
+  end Builder;
 
   package Compiler is
      for Default_Switches ("Ada") use (--"-gnaty",
- "-gnatwa", "-gnatVa");
+      "-gnatwa", "-gnatVa");
   end Compiler;
 
   package Linker is
