@@ -539,17 +539,17 @@ package body Ballfield is
          Tick      : Ada.Real_Time.Time;
          Last_Tick : Ada.Real_Time.Time := Ada.Real_Time.Clock;
 
-         T  : Long_Float := 0.000;
-         Dt : Duration;
+         Time       : Long_Float := 0.000;
+         Delta_Time : Duration;
 
          FPS_Count : Integer := 0;
          FPS_Start : Ada.Real_Time.Time := Ada.Real_Time.Clock;
          FPS       : Float := 0.0;
-
-         X_Speed, Y_Speed, Z_Speed : Float;
       begin
 
          loop
+
+            --  Events
             declare
                use SDL.Events;
                Event : SDL.Events.Events.Events;
@@ -564,9 +564,9 @@ package body Ballfield is
             declare
                use Ada.Real_Time;
             begin
-               Tick      := Ada.Real_Time.Clock;
-               Dt        := To_Duration (Tick - Last_Tick);
-               Last_Tick := Tick;
+               Tick       := Ada.Real_Time.Clock;
+               Delta_Time := To_Duration (Tick - Last_Tick);
+               Last_Tick  := Tick;
             end;
 
             --  Background image
@@ -604,28 +604,28 @@ package body Ballfield is
                FPS_Count := FPS_Count + 1;
             end;
 
+            -- Update
             Window.Update_Surface;
---         Renderer.Present;
 
             --  Animate
             declare
                use Ada.Numerics.Elementary_Functions;
-               FT : constant Float := Float (T);
+
+               FT      : constant Float := Float (Time);
+               X_Speed : constant Float := 500.0 * Sin (FT * 0.37);
+               Y_Speed : constant Float := 500.0 * Sin (FT * 0.53);
+               Z_Speed : constant Float := 400.0 * Sin (FT * 0.21);
             begin
-               X_Speed := 500.0 * Sin (FT * 0.37);
-               Y_Speed := 500.0 * Sin (FT * 0.53);
-               Z_Speed := 400.0 * Sin (FT * 0.21);
+               Ballfield_Move (Balls,
+                               Koord_Type (X_Speed),
+                               Koord_Type (Y_Speed),
+                               Koord_Type (Z_Speed));
+
+               X_Offs := X_Offs - Integer (X_Speed);
+               Y_Offs := Y_Offs - Integer (Y_Speed);
             end;
 
-            Ballfield_Move (Balls,
-                            Koord_Type (X_Speed),
-                            Koord_Type (Y_Speed),
-                            Koord_Type (Z_Speed));
-
-            X_Offs := X_Offs - Integer (X_Speed);
-            Y_Offs := Y_Offs - Integer (Y_Speed);
-
-            T := T + Long_Float (Dt);
+            Time := Time + Long_Float (Delta_Time);
          end loop;
       end Dynamic;
 
