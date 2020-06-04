@@ -1,5 +1,5 @@
 --
--- "Ballfield"
+--  "Ballfield"
 --
 --  (C) David Olofson <david@olofson.net>, 2002
 --
@@ -18,10 +18,10 @@ package Ballfield is
    procedure Main;
 
    --  Definitions
-   BALLS  : constant := 200;
-   COLORS : constant := 2;
-   type Color_Type is range 0 .. Colors - 1;
-   type Ball_Index is range 0 .. Balls - 1;
+--   BALLS  : constant := 200;
+--   COLORS : constant := 2;
+   type Ball_Index is range 0 .. 199;
+   type Color_Type is range 0 .. 1;
 
    type Point_Type is
       record
@@ -30,9 +30,16 @@ package Ballfield is
       end record;
 
    --  Ballfield
-   type Point_Array      is array (Ball_Index)       of Point_Type;
-   type Surface_Array    is array (Color_Type)       of SDL.Video.Surfaces.Surface;
-   type Rectangle_Array  is array (Natural range <>) of SDL.Video.Rectangles.Rectangle;
+   type Point_Array is array (Ball_Index) of Point_Type;
+
+   type Surface_Array
+   is array (Color_Type)
+   of SDL.Video.Surfaces.Surface;
+
+   type Rectangle_Array
+   is array (Natural range <>)
+   of SDL.Video.Rectangles.Rectangle;
+
    type Rectangle_Access is access all Rectangle_Array;
 
    type Ballfield_Type is

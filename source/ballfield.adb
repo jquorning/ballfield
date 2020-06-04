@@ -15,8 +15,6 @@ with Ada.Numerics.Discrete_Random;
 with Ada.Real_Time;
 
 with SDL.Video.Windows.Makers;
---with SDL.Video.Renderers.Makers;
---with SDL.Video.Textures.Makers;
 
 with SDL.Images.IO;
 with SDL.Events.Events;
@@ -24,15 +22,12 @@ with SDL.Events.Keyboards;
 
 package body Ballfield is
 
---   Renderer : SDL.Video.Renderers.Renderer;
-
    procedure Debug (Text : String) is
    begin
       Ada.Text_IO.Put_Line (Text);
    end Debug;
 
    use SDL.Video.Surfaces;
---   use SDL.Video.Textures;
 
    ----------------------------
    -- General tool functions --
@@ -63,7 +58,8 @@ package body Ballfield is
 --                                          (S.Size.Width, S.Size.Height), 32,
 --                                          16#FF_00_00_00#, 16#00_FF_00_00#,
 --                                          16#00_00_FF_00#, 16#00_00_00_FF#);
---  --      Work := SDL_CreateRGBSurface (SDL_SWSURFACE, S.Size.Width, S.Size.Height, 32,
+--  --      Work := SDL_CreateRGBSurface
+--  (SDL_SWSURFACE, S.Size.Width, S.Size.Height, 32,
 --  --                                    16#Ff_00_00_00#, 16#00_FF_00_00#,
 --  --                                    16#00_00_FF_00#, 16#00_00_00_FF#);
 
@@ -117,7 +113,7 @@ package body Ballfield is
    --
    --  Load and convert an antialiazed, zoomed set of sprites.
    --
-   procedure Load_Zoomed (Sprites   : out Surface; -- Texture; -- Surface;
+   procedure Load_Zoomed (Sprites   : out Surface;
                           File_Name :     String;
                           Alpha     :     Boolean)
    is
@@ -129,7 +125,7 @@ package body Ballfield is
 --            return NULL;
 
       Sprites := Temp;
-      --SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
+      --  SDL.Video.Textures.Set_Alpha (Sprites, 200);  -- SDL_RLEACCEL, 255);
 --      Clean_Alpha (Temp, Sprites);
 
       --      Sprites.Finalize; -- SDL_FreeSurface (Sprites);
@@ -142,20 +138,22 @@ package body Ballfield is
 
       if Alpha then
          null;
---           SDL.Video.Textures.Set_Alpha (Temp, 0); -- SDL_SRCALPHA or SDL_RLEACCEL, 0);
---           --Sprites := SDL_DisplayFormatAlpha (Temp);
+         --  SDL.Video.Textures.Set_Alpha (Temp, 0);
+         --  SDL_SRCALPHA or SDL_RLEACCEL, 0);
+         --  Sprites := SDL_DisplayFormatAlpha (Temp);
       else
          null;
          --           SDL.Video.Surfaces.Set_Colour_Key
 --             (Temp, -- SDL_SRCCOLORKEY or SDL_RLEACCEL,
---              Now    => SDL.Video.Pixel_Formats.To_Pixel (Temp.Pixel_Format,0,0,0),
+--              Now    => SDL.Video.Pixel_Formats.To_Pixel
+--  (Temp.Pixel_Format,0,0,0),
 --              --SDL_MapRGB (Temp.format, 0, 0, 0),
 --              Enable => True);
 --           --Sprites := SDL_DisplayFormat (Temp);
       end if;
-    --SDL_FreeSurface(temp);
+      --  SDL_FreeSurface(temp);
 
-      -- return Sprites;
+      --  return Sprites;
    end Load_Zoomed;
 
    ---------------
@@ -173,22 +171,22 @@ package body Ballfield is
       Val  : Integer := Integer (Value * 10.0);
       Pos  : Integer;
    begin
-      -- Sign
+      --  Sign
       if Val < 0 then
          Buf (P) := 10;
          P := P + 1;
          Val := -Val;
       end if;
 
-      -- Integer part
-      -- Pos := 10_000_000;
+      --  Integer part
+      --  Pos := 10_000_000;
       Pos := 1_000;
       while Pos > 1 loop
          declare
             Num : constant Integer := Val / Pos;
          begin
             Val := Val - Num * Pos;
-            pos := Pos / 10;
+            Pos := Pos / 10;
             if P /= 0 or Num /= 0 then
                Buf (P) := Num;
                P := P + 1;
@@ -196,14 +194,14 @@ package body Ballfield is
          end;
       end loop;
 
-      -- Decimals
+      --  Decimals
       if Val / Pos /= 0 then
 
          Buf (P) := 11;
          P := P + 1;
          while Pos > 0 loop
             declare
-               Num : constant Integer := val / pos;
+               Num : constant Integer := Val / Pos;
             begin
                Val     := Val - Num * Pos;
                Pos     := Pos / 10;
@@ -215,16 +213,16 @@ package body Ballfield is
 
 --      Buf := (1,3,2,11,4,7,6,9,8,4);
 
-      -- Render!
+      --  Render!
       declare
-          use SDL.C;
-          From : Rectangle := (0, 0, Width => 7, Height => 10);
-          To   : Rectangle;
+         use SDL.C;
+         From : Rectangle := (0, 0, Width => 7, Height => 10);
+         To   : Rectangle;
       begin
-         for pos in 0 .. P - 1 loop
-            To.X := Int (X + Pos * 7);
-            To.Y := Int (Y);
-            From.X := Int (Buf (Pos) * 7);
+         for Pos in 0 .. P - 1 loop
+            To.X := int (X + Pos * 7);
+            To.Y := int (Y);
+            From.X := int (Buf (Pos) * 7);
             Dst.Blit (Source      => Font,
                       Source_Area => From,
                       Self_Area   => To);
@@ -241,8 +239,9 @@ package body Ballfield is
    -- Initialize --
    ----------------
 
-   procedure ballfield_init (BF : out Ballfield_Type) is
+   procedure Ballfield_Init (BF : out Ballfield_Type) is
 
+      Ball_Types : constant := Ball_Index'Last - Ball_Index'First + 1;
       package Random_Integers
       is new Ada.Numerics.Discrete_Random (Integer);
       use Random_Integers;
@@ -253,12 +252,12 @@ package body Ballfield is
 
       for I in Ball_Index loop
 
-         Bf.Points (I).X := Random (Gen) mod 16#20000#;
-         Bf.Points (I).Y := Random (Gen) mod 16#20000#;
-         Bf.Points (I).Z := 16#20000# * Integer (I) / BALLS;
+         BF.Points (I).X := Random (Gen) mod 16#20000#;
+         BF.Points (I).Y := Random (Gen) mod 16#20000#;
+         BF.Points (I).Z := 16#20000# * Integer (I) / Ball_Types;
 
          if Random (Gen) mod 100 > 80 then
-            Bf.Points (I).C := 1;
+            BF.Points (I).C := 1;
          else
             BF.Points (I).C := 0;
          end if;
@@ -275,7 +274,7 @@ package body Ballfield is
       pragma Unreferenced (BF);
    begin
       for I in Color_Type loop
-         null; --Bf.Gfx (I).Finalize;
+         null; --  Bf.Gfx (I).Finalize;
       end loop;
    end Ballfield_Free;
 
@@ -288,7 +287,7 @@ package body Ballfield is
       use SDL.C;
 
       J     : int          := 0;
-      Width : constant int := Bf.Gfx (0).Size.Width;
+      Width : constant int := BF.Gfx (0).Size.Width;
 
       subtype Index_Range is Natural
       range 0 .. Natural (Width) - 1;
@@ -297,15 +296,11 @@ package body Ballfield is
       --
       --  Set up source rects for all frames
       --
-      Bf.Frames := new Rectangle_Array'(Index_Range => <>);
---      if(!bf->frames)
---      {
---              fprintf(stderr, "No memory for frame rects!\n");
---              return -1;
---      }
+      BF.Frames := new Rectangle_Array'(Index_Range => <>);
+
       for I in Index_Range loop
 
-         Bf.Frames (I) := (X      => 0,
+         BF.Frames (I) := (X      => 0,
                            Y      => J,
                            Width  => Width - int (I),
                            Height => Width - int (I));
@@ -337,7 +332,7 @@ package body Ballfield is
 --    return 0;
    end Ballfield_Load_Gfx;
 
-   type Koord_Type is new Integer; --mod 16#20000#;
+   type Koord_Type is new Integer;
 
    ----------
    -- Move --
@@ -352,7 +347,6 @@ package body Ballfield is
                    Z => (Point.Z + Integer (Dz)) mod 16#20000#,
                    C => Point.C);
       end loop;
-      -- Debug (BF.Points (0).X'Image & "  " & BF.Points (1).Y'Image & "   " & Dx'Image);
    end Ballfield_Move;
 
    ------------
@@ -374,42 +368,42 @@ package body Ballfield is
       for I in Ball_Index loop
          if BF.Points (I).Z > Z then
             J := I;
-            Z := Bf.Points (I).Z;
+            Z := BF.Points (I).Z;
          end if;
       end loop;
 
       --
       --  Render all balls in back->front order.
       --
-      for I in 0 .. BALLS - 1 loop
+      for I in Ball_Index loop
          declare
             R : SDL.Video.Rectangles.Rectangle;
             F : Integer;
          begin
-            Z := Bf.Points (J).Z;
+            Z := BF.Points (J).Z;
             Z := Z + 50;
 
-            F := Integer ((Bf.Frames (0).Width / 2**12) + 100000) / Z;
-            F := Integer (Bf.Frames (0).Width) - F;
+            F := Integer ((BF.Frames (0).Width / 2**12) + 100000) / Z;
+            F := Integer (BF.Frames (0).Width) - F;
             if F < 0 then
                F := 0;
-            elsif F > Integer (Bf.Frames (0).Width) - 1 then
-               F := Integer (Bf.Frames (0).Width) - 1;
+            elsif F > Integer (BF.Frames (0).Width) - 1 then
+               F := Integer (BF.Frames (0).Width) - 1;
             end if;
 
             Z := Z / 2**7;
             Z := Z + 1;
-            R.X := Int (Bf.Points (J).X - 16#10000#) / int (Z);
-            R.Y := Int (Bf.Points (J).Y - 16#10000#) / int (Z);
-            R.X := R.X + (Screen.Size.Width  - Bf.Frames (F).Width) / 2;
-            R.Y := R.Y + (Screen.Size.Height - Bf.Frames (F).Height) / 2;
-            Screen.Blit (Source      => Bf.Gfx (Bf.Points (J).C),
-                         Source_Area => Bf.Frames (F),
+            R.X := int (BF.Points (J).X - 16#10000#) / int (Z);
+            R.Y := int (BF.Points (J).Y - 16#10000#) / int (Z);
+            R.X := R.X + (Screen.Size.Width  - BF.Frames (F).Width) / 2;
+            R.Y := R.Y + (Screen.Size.Height - BF.Frames (F).Height) / 2;
+            Screen.Blit (Source      => BF.Gfx (BF.Points (J).C),
+                         Source_Area => BF.Frames (F),
                          Self_Area   => R);
             if J > 0 then
                J := J - 1;
             else
-               j := BALLS - 1;
+               J := Ball_Index'Last;
             end if;
          end;
       end loop;
@@ -432,9 +426,14 @@ package body Ballfield is
       use SDL.C;
       Width  : constant Natural := Natural (Back.Size.Width);
       Height : constant Natural := Natural (Back.Size.Height);
-      Xoc    : constant Natural := (Xo + Width  * ((-Xo) / Width + 1))  mod Width;
-      Yoc    : constant Natural := (Yo + Height * ((-Yo) / Height + 1)) mod Height;
-      X, Y   : Integer;
+
+      Xoc    : constant Natural :=
+        (Xo + Width  * ((-Xo) / Width + 1))  mod Width;
+
+      Yoc    : constant Natural :=
+        (Yo + Height * ((-Yo) / Height + 1)) mod Height;
+
+      X, Y : Integer;
    begin
       Y  := -Yoc;
       while Y < Integer (Screen.Size.Height) loop
@@ -498,10 +497,9 @@ package body Ballfield is
                                        Title    => "Ballfield",
                                        Position => (100, 100),
                                        Size     => (SCREEN_W, SCREEN_H) -- ,
-                                       -- Bpp,
+                                       --  Bpp,
                                        ); -- Flags => False); --Flags);
       Screen := Window.Get_Surface;
---      SDL.Video.Renderers.Makers.Create (Renderer, Window, SDL.Video.Renderers.Present_V_Sync);
 
 --      if(flags & SDL_FULLSCREEN)
 --              SDL_ShowCursor(0);
@@ -531,7 +529,7 @@ package body Ballfield is
 --                       SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      font := SDL_DisplayFormat (temp_image);
 
-      Dynamic:
+      Dynamic :
       declare
          X_Offs : Integer := 0;
          Y_Offs : Integer := 0;
@@ -591,7 +589,8 @@ package body Ballfield is
                use Ada.Real_Time;
             begin
                if Tick > FPS_Start + Milliseconds (500) then
-                  FPS       := Float (FPS_Count) / Float (To_Duration (Tick - FPS_Start));
+                  FPS       := (Float (FPS_Count)
+                                  / Float (To_Duration (Tick - FPS_Start)));
                   FPS_Count := 0;
                   FPS_Start := Tick;
                end if;
@@ -604,7 +603,7 @@ package body Ballfield is
                FPS_Count := FPS_Count + 1;
             end;
 
-            -- Update
+            --  Update
             Window.Update_Surface;
 
             --  Animate
@@ -632,7 +631,7 @@ package body Ballfield is
       Ballfield_Free (Balls);
 
       Back.Finalize;
-      Logo.finalize;
+      Logo.Finalize;
       Font.Finalize;
 
       SDL.Finalise;

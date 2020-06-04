@@ -12,8 +12,8 @@ project Ballfield is
   end Builder;
 
   package Compiler is
-     for Default_Switches ("Ada") use (--"-gnaty",
-      "-gnatwa", "-gnatVa");
+     for Default_Switches ("Ada") use
+         ("-gnaty", "-gnatwa", "-gnatVa");
   end Compiler;
 
   package Linker is
