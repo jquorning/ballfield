@@ -212,8 +212,6 @@ package body Ballfield is
       To   : Rectangle;
    begin
       for Pos in Value'Range loop
-         To.X := int (X) + int (Pos - Value'First) * Character_Width;
-         To.Y := int (Y);
 
          Good_Character := True;
          case Value (Pos) is
@@ -226,7 +224,12 @@ package body Ballfield is
          end case;
 
          if Good_Character then
+
             From.X := int (Char) * Character_Width;
+
+            To.X := int (X) + int (Pos - Value'First) * Character_Width;
+            To.Y := int (Y);
+
             Destin.Blit (Source      => Font,
                          Source_Area => From,
                          Self_Area   => To);
