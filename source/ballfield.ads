@@ -49,8 +49,8 @@ package Ballfield is
       end record;
 
    --  Size of the screen in pixels
-   SCREEN_W : constant := 320;
-   SCREEN_H : constant := 240;
+   SCREEN_W : constant := 800;
+   SCREEN_H : constant := 600;
 
    --  Size of the biggest ball image in pixels
    --

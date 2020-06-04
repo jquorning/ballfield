@@ -14,17 +14,16 @@ with Ada.Numerics.Elementary_Functions;
 with Ada.Numerics.Discrete_Random;
 
 with SDL.Video.Windows.Makers;
---with SDL.Video.Surfaces.Makers;
-with SDL.Video.Renderers.Makers;
+--with SDL.Video.Renderers.Makers;
 --with SDL.Video.Textures.Makers;
---with SDL.Video.Pixel_Formats;
 
 with SDL.Images.IO;
 with SDL.Events.Events;
-
---with Interfaces; -- Needed for SDL.Video.Pixel_Formats;
+with SDL.Events.Keyboards;
 
 package body Ballfield is
+
+--   Renderer : SDL.Video.Renderers.Renderer;
 
    procedure Debug (Text : String) is
    begin
@@ -320,7 +319,7 @@ package body Ballfield is
 --    return 0;
    end Ballfield_Load_Gfx;
 
-   type Koord_Type is mod 16#20000#;
+   type Koord_Type is new Integer; --mod 16#20000#;
 
    ----------
    -- Move --
@@ -333,8 +332,9 @@ package body Ballfield is
          Point := (X => (Point.X + Integer (Dx)) mod 16#20000#,
                    Y => (Point.Y + Integer (Dy)) mod 16#20000#,
                    Z => (Point.Z + Integer (Dz)) mod 16#20000#,
-                   C => <>);
+                   C => Point.C);
       end loop;
+      -- Debug (BF.Points (0).X'Image & "  " & BF.Points (1).Y'Image & "   " & Dx'Image);
    end Ballfield_Move;
 
    ------------
@@ -409,7 +409,7 @@ package body Ballfield is
    --
    procedure Tiled_Back (Back   :        Surface;
                          Screen : in out Surface;
-                         Xo, Yo :        Natural)
+                         Xo, Yo :        Integer)
    is
       use SDL.C;
       Width  : constant Natural := Natural (Back.Size.Width);
@@ -445,9 +445,7 @@ package body Ballfield is
 
       Balls            : Ballfield_Type;
       Window           : SDL.Video.Windows.Window;
-      Renderer         : SDL.Video.Renderers.Renderer;
       Screen           : SDL.Video.Surfaces.Surface;
-      Temp_Image       : SDL.Video.Surfaces.Surface;
       Back, Logo, Font : SDL.Video.Surfaces.Surface;
 
       Event  : SDL.Events.Events.Events;
@@ -462,8 +460,8 @@ package body Ballfield is
 --        Last_Tick     : Long_Integer;
 --        Last_Avg_Tick : Long_Integer;
 
-      T  : constant Long_Float := 0.000;
---      Dt : Float;
+      T  : Long_Float := 0.000;
+      Dt : Float;
 --      I  : Integer;
 
 --        FPS : float := 0.0;
@@ -502,7 +500,7 @@ package body Ballfield is
                                        -- Bpp,
                                        ); -- Flags => False); --Flags);
       Screen := Window.Get_Surface;
-      SDL.Video.Renderers.Makers.Create (Renderer, Window, SDL.Video.Renderers.Present_V_Sync);
+--      SDL.Video.Renderers.Makers.Create (Renderer, Window, SDL.Video.Renderers.Present_V_Sync);
       --      if(!screen)
 --      {
 --              fprintf(stderr, "Failed to open screen!\n");
@@ -524,70 +522,26 @@ package body Ballfield is
       --  Load and prepare balls...
       --
       Balls.Use_Alpha := Alpha;
-      Debug ("##1-1");
+
       Ballfield_Load_Gfx (Balls, "assets/blueball.png", 0);
-      Debug ("##1-2");
       Ballfield_Load_Gfx (Balls, "assets/redball.png",  1);
-      Debug ("##1-3");
       Ballfield_Init_Frames (Balls);
-      Debug ("##1-4");
 
---      {
---              fprintf(stderr, "Could not load balls!\n");
---              exit(-1);
---      }
-
-      --
       --  Load background image
-      --
-      SDL.Images.IO.Create (Temp_Image, "assets/redbluestars.png");
-      Debug ("##1-5");
-      --      if(!temp_image)
---      {
---              fprintf(stderr, "Could not load background!\n");
---              exit(-1);
---      }
-
-      Back := Temp_Image; -- JQ
+      SDL.Images.IO.Create (Back, "assets/redbluestars.png");
 --      Back := SDL_DisplayFormat(temp_image);
 
-
-      --SDL_FreeSurface (Temp_Image);
-
-      --
       --  Load logo
-      --
-      SDL.Images.IO.Create (Temp_Image, "assets/logo.bmp");
-      Debug ("##1-6");
-      --      if(!temp_image)
---      {
---              fprintf(stderr, "Could not load logo!\n");
---              exit(-1);
---      }
-
+      SDL.Images.IO.Create (Logo, "assets/logo.bmp");
 --      SDL_SetColorKey (temp_image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
 --                      SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      logo := SDL_DisplayFormat (temp_image);
-      Logo := Temp_Image; -- JQ
 
-      --SDL_FreeSurface(temp_image);
-
-      --
       --  Load font
-      --
-      SDL.Images.IO.Create (Temp_Image, "assets/font7x10.bmp");
-      Debug ("##1-7");
-      --      if(!temp_image)
---      {
---              fprintf(stderr, "Could not load font!\n");
---              exit(-1);
---      }
-
+      SDL.Images.IO.Create (Font, "assets/font7x10.bmp");
 --      SDL_SetColorKey (Temp_Image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
 --                       SDL_MapRGB (Temp_Image.format, 255, 0, 255));
 --      font := SDL_DisplayFormat (temp_image);
-
---      Temp_Image.Finalize;
 
       Debug ("##1-8");
 
@@ -599,6 +553,7 @@ package body Ballfield is
          begin
             if Events.Poll (Event) then
                exit when Event.Common.Event_Type = Quit;
+               exit when Event.Common.Event_Type = Keyboards.Key_Down;
             end if;
          end;
 
@@ -606,6 +561,7 @@ package body Ballfield is
 --           Tick      := SDL_GetTicks;
 --         Dt        := (Tick - Last_Tick) * 0.001;
 --           Last_Tick := Tick;
+         Dt := 0.010;
 
          --  Background image
          Tiled_Back (Back, Screen, X_Offs / 2**11, Y_Offs / 2**11);
@@ -636,6 +592,7 @@ package body Ballfield is
          -- !!!
 --         SDL_Flip (screen);
          Window.Update_Surface;
+--         Renderer.Present;
 
          --  Animate
          declare
@@ -655,23 +612,16 @@ package body Ballfield is
          X_Offs := X_Offs - Integer (X_Speed);
          Y_Offs := Y_Offs - Integer (Y_Speed);
 
---         T := T + Long_Float (Dt);
+         T := T + Long_Float (Dt);
          delay 0.010;
       end loop;
 
-      Debug ("##4-1");
       Ballfield_Free (Balls);
 
-      Debug ("##4-2");
       Back.Finalize;
-
-      Debug ("##4-3");
       Logo.finalize;
-
-      Debug ("##4-4");
       Font.Finalize;
 
-      Debug ("##4-5");
       SDL.Finalise;
 
       Debug ("##4-6");
