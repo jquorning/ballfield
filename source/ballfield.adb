@@ -161,59 +161,76 @@ package body Ballfield is
    -- Print_Num --
    ---------------
 
---  void print_num(SDL_Surface *dst, SDL_Surface *font, int x, int y, float value)
---  {
---      char buf[16];
---      int val = (int)(value * 10.0);
---      int pos, p = 0;
---      SDL_Rect from;
+   procedure Print_Num (Dst   : in out Surface;
+                        Font  :        Surface;
+                        X, Y  :        Integer;
+                        Value :        Float)
+   is
+      use SDL.Video.Rectangles;
+      Buf  : array (0 .. 9) of Natural;
+      P    : Natural := Buf'First;
+      Val  : Integer := Integer (Value * 10.0);
+      Pos  : Integer;
+   begin
+      -- Sign
+      if Val < 0 then
+         Buf (P) := 10;
+         P := P + 1;
+         Val := -Val;
+      end if;
 
---      /* Sign */
---      if(val < 0)
---      {
---              buf[p++] = 10;
---              val = -val;
---      }
+      -- Integer part
+      -- Pos := 10_000_000;
+      Pos := 1_000;
+      while Pos > 1 loop
+         declare
+            Num : constant Integer := Val / Pos;
+         begin
+            Val := Val - Num * Pos;
+            pos := Pos / 10;
+            if P /= 0 or Num /= 0 then
+               Buf (P) := Num;
+               P := P + 1;
+            end if;
+         end;
+      end loop;
 
---      /* Integer part */
---      pos = 10000000;
---      while(pos > 1)
---      {
---              int num = val / pos;
---              val -= num * pos;
---              pos /= 10;
---              if(p || num)
---                      buf[p++] = num;
---      }
+      -- Decimals
+      if Val / Pos /= 0 then
 
---      /* Decimals */
---      if(val / pos)
---      {
---              buf[p++] = 11;
---              while(pos > 0)
---              {
---                      int num = val / pos;
---                      val -= num * pos;
---                      pos /= 10;
---                      buf[p++] = num;
---              }
---      }
+         Buf (P) := 11;
+         P := P + 1;
+         while Pos > 0 loop
+            declare
+               Num : constant Integer := val / pos;
+            begin
+               Val     := Val - Num * Pos;
+               Pos     := Pos / 10;
+               Buf (P) := Num;
+               P       := P + 1;
+            end;
+         end loop;
+      end if;
 
---      /* Render! */
---      from.y = 0;
---      from.w = 7;
---      from.h = 10;
---      for(pos = 0; pos < p; ++pos)
---      {
---              SDL_Rect to;
---              to.x = x + pos * 7;
---              to.y = y;
---              from.x = buf[pos] * 7;
---              SDL_BlitSurface(font, &from, dst, &to);
---      }
---  }
+--      Buf := (1,3,2,11,4,7,6,9,8,4);
 
+      -- Render!
+      declare
+          use SDL.C;
+          From : Rectangle := (0, 0, Width => 7, Height => 10);
+          To   : Rectangle;
+      begin
+         for pos in 0 .. P - 1 loop
+            To.X := Int (X + Pos * 7);
+            To.Y := Int (Y);
+            From.X := Int (Buf (Pos) * 7);
+            Dst.Blit (Source      => Font,
+                      Source_Area => From,
+                      Self_Area   => To);
+         end loop;
+      end;
 
+   end Print_Num;
 
    ---------------------------
    -- ballfield_t functions --
@@ -464,7 +481,7 @@ package body Ballfield is
       Dt : Float;
 --      I  : Integer;
 
---        FPS : float := 0.0;
+      FPS : Float := 0.0;
 --        FPS_Count : Integer := 0;
 --        FPS_start : Integer := 0;
 
@@ -586,7 +603,8 @@ package body Ballfield is
 --              FPS_Count := 0;
 --              FPS_Start := tick;
 --           end if;
---           Print_Num (Screen, Font, Screen.W - 37, Screen.H - 12, FPS);
+         FPS := 987.32; -- JQ !!!
+         Print_Num (Screen, Font, Integer (Screen.Size.Width) - 137, Integer (Screen.Size.Height) - 12, FPS);
 --           FPS_Count := FPS_Count + 1;
 
          -- !!!
