@@ -38,11 +38,12 @@ package body Ballfield is
                           Alpha     :     Boolean);
    --  Load and convert an antialiazed, zoomed set of sprites.
 
-   procedure Print_Num (Destin : in out Surface;
-                        Font   :        Surface;
-                        X, Y   :        Integer;
-                        Value  :        Float);
+   procedure Print_Number (Destin : in out Surface;
+                           Font   :        Surface;
+                           X, Y   :        Integer;
+                           Value  :        String);
    --  Render Value to position (X, Y) on Destin surface with Font.
+   --  Value elements must be in "0..9.,-" otherwise element is not output.
 
    type Koord_Type is new Integer;
 
@@ -185,80 +186,55 @@ package body Ballfield is
       --  return Sprites;
    end Load_Zoomed;
 
-   ---------------
-   -- Print_Num --
-   ---------------
+   ------------------
+   -- Print_Number --
+   ------------------
 
-   procedure Print_Num (Destin : in out Surface;
-                        Font   :        Surface;
-                        X, Y   :        Integer;
-                        Value  :        Float)
+   procedure Print_Number (Destin : in out Surface;
+                           Font   :        Surface;
+                           X, Y   :        Integer;
+                           Value  :        String)
    is
       use SDL.Video.Rectangles;
-      Buf  : array (0 .. 9) of Natural;
-      P    : Natural := Buf'First;
-      Val  : Integer := Integer (Value * 10.0);
-      Pos  : Integer;
+      use SDL.C;
+      Character_Width  : constant int := 7;
+      Character_Height : constant int := 10;
+
+      subtype Character_Index is Integer range 0 .. 11;
+      Character_Zero   : constant Character_Index := 0;
+      Character_Minus  : constant Character_Index := 10;
+      Character_Point  : constant Character_Index := 11;
+      Char             : Character_Index;
+      Good_Character   : Boolean;
+
+      From : Rectangle := (0, 0,
+                           Width  => Character_Width,
+                           Height => Character_Height);
+      To   : Rectangle;
    begin
-      --  Sign
-      if Val < 0 then
-         Buf (P) := 10;
-         P := P + 1;
-         Val := -Val;
-      end if;
+      for Pos in Value'Range loop
+         To.X := int (X + (Pos - Value'First) * 7);
+         To.Y := int (Y);
 
-      --  Integer part
-      --  Pos := 10_000_000;
-      Pos := 1_000;
-      while Pos > 1 loop
-         declare
-            Num : constant Integer := Val / Pos;
-         begin
-            Val := Val - Num * Pos;
-            Pos := Pos / 10;
-            if P /= 0 or Num /= 0 then
-               Buf (P) := Num;
-               P := P + 1;
-            end if;
-         end;
-      end loop;
+         Good_Character := True;
+         case Value (Pos) is
+            when '0' .. '9' => Char := (Character_Zero
+                                          + Character'Pos (Value (Pos))
+                                          - Character'Pos ('0'));
+            when '-'        => Char := Character_Minus;
+            when '.' | ','  => Char := Character_Point;
+            when others     => Good_Character := False;
+         end case;
 
-      --  Decimals
-      if Val / Pos /= 0 then
-
-         Buf (P) := 11;
-         P := P + 1;
-         while Pos > 0 loop
-            declare
-               Num : constant Integer := Val / Pos;
-            begin
-               Val     := Val - Num * Pos;
-               Pos     := Pos / 10;
-               Buf (P) := Num;
-               P       := P + 1;
-            end;
-         end loop;
-      end if;
-
---      Buf := (1,3,2,11,4,7,6,9,8,4);
-
-      --  Render!
-      declare
-         use SDL.C;
-         From : Rectangle := (0, 0, Width => 7, Height => 10);
-         To   : Rectangle;
-      begin
-         for Pos in 0 .. P - 1 loop
-            To.X := int (X + Pos * 7);
-            To.Y := int (Y);
-            From.X := int (Buf (Pos) * 7);
+         if Good_Character then
+            From.X := int (Char) * Character_Width;
             Destin.Blit (Source      => Font,
                          Source_Area => From,
                          Self_Area   => To);
-         end loop;
-      end;
+         end if;
+      end loop;
 
-   end Print_Num;
+   end Print_Number;
 
    ----------------
    -- Initialize --
@@ -543,6 +519,9 @@ package body Ballfield is
 
       Dynamic :
       declare
+         package FPS_IO is new Ada.Text_IO.Float_IO (Num => Float);
+         Number : String (1 .. 5);
+
          X_Offs : Integer := 0;
          Y_Offs : Integer := 0;
 
@@ -556,7 +535,6 @@ package body Ballfield is
          FPS_Start : Ada.Real_Time.Time := Ada.Real_Time.Clock;
          FPS       : Float := 0.0;
       begin
-
          loop
 
             --  Events
@@ -606,11 +584,11 @@ package body Ballfield is
                   FPS_Count := 0;
                   FPS_Start := Tick;
                end if;
-
-               Print_Num (Screen, Font,
-                          X     => Integer (Screen.Size.Width) - 37,
-                          Y     => Integer (Screen.Size.Height) - 12,
-                          Value => FPS);
+               FPS_IO.Put (Number, FPS, Exp => 0, Aft => 1);
+               Print_Number (Screen, Font,
+                             X     => Integer (Screen.Size.Width) - 37,
+                             Y     => Integer (Screen.Size.Height) - 12,
+                             Value => Number);
 
                FPS_Count := FPS_Count + 1;
             end;
