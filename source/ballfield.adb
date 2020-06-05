@@ -245,21 +245,27 @@ package body Ballfield is
 
    procedure Ballfield_Init (Field : out Ballfield_Type) is
 
-      package Random_Integers
-      is new Ada.Numerics.Discrete_Random (Integer);
-      use Random_Integers;
+      package Random_Coords
+      is new Ada.Numerics.Discrete_Random (Coord_Type);
 
-      Gen : Generator;
+      type Percentage is range 0 .. 99;
+      package Random_Percentage
+      is new Ada.Numerics.Discrete_Random (Percentage);
+
+      Coord_Generator   : Random_Coords.Generator;
+      Percent_Generator : Random_Percentage.Generator;
+      function Random_Coord   return Coord_Type is (Random_Coords.Random (Coord_Generator));
+      function Random_Percent return Percentage is (Random_Percentage.Random (Percent_Generator));
    begin
-      Reset (Gen);
+      Random_Coords.Reset (Coord_Generator);
 
       for I in Ball_Index loop
 
          Field.Points (I) :=
-           (X     => Abs_Coord_Type (Random (Gen) mod 16#20000#),
-            Y     => Abs_Coord_Type (Random (Gen) mod 16#20000#),
-            Z     => 16#20000# * Abs_Coord_Type (I) / Ball_Index'Modulus,
-            Color => (if Random (Gen) mod 100 > 80 then Red else Blue));
+           (X     => Random_Coord,
+            Y     => Random_Coord,
+            Z     => Coord_Type'Last * Coord_Type (I) / Ball_Index'Modulus,
+            Color => (if Random_Percent > 80 then Red else Blue));
 
       end loop;
 
@@ -331,9 +337,9 @@ package body Ballfield is
                              Dx, Dy, Dz :        Rel_Coord_Type) is
    begin
       for Point of Field.Points loop
-         Point := (X     => (Point.X + Dx) mod 16#20000#,
-                   Y     => (Point.Y + Dy) mod 16#20000#,
-                   Z     => (Point.Z + Dz) mod 16#20000#,
+         Point := (X     => (Point.X + Dx) mod Coord_High,
+                   Y     => (Point.Y + Dy) mod Coord_High,
+                   Z     => (Point.Z + Dz) mod Coord_High,
                    Color => Point.Color);
       end loop;
    end Ballfield_Move;
@@ -350,8 +356,8 @@ package body Ballfield is
       --  Find the ball with the highest Z.
 
       function Find_Z_Maximum return Ball_Index is
-         J_High : Ball_Index     := 0;
-         Z_High : Abs_Coord_Type := 0;
+         J_High : Ball_Index := 0;
+         Z_High : Coord_Type := 0;
       begin
          for Index in Ball_Index loop
             if Field.Points (Index).Z > Z_High then
@@ -388,8 +394,8 @@ package body Ballfield is
             declare
                use SDL.Video.Rectangles;
 
-               X_Some : constant int := int (Field.Points (J).X - 16#10000#) / int (Z);
-               Y_Some : constant int := int (Field.Points (J).Y - 16#10000#) / int (Z);
+               X_Some : constant int := int (Field.Points (J).X - Coord_Center) / int (Z);
+               Y_Some : constant int := int (Field.Points (J).Y - Coord_Center) / int (Z);
                X_Half : constant int := (Screen.Size.Width  - Field.Frames (Frame).Width) / 2;
                Y_Half : constant int := (Screen.Size.Height - Field.Frames (Frame).Height) / 2;
 

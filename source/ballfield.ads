@@ -21,13 +21,15 @@ package Ballfield is
    type Ball_Index is mod 1_000;
    type Color_Type is (Blue, Red);
 
-   type Coord_Type_2 is new Integer;
-   subtype Abs_Coord_Type is Coord_Type_2 range 0 .. 16#20000# - 1;
-   subtype Rel_Coord_Type is Coord_Type_2 range -500 .. 500;
+   type Base_Coord_Type   is new Integer;
+   Coord_High   : constant := 16#20000#;
+   Coord_Center : constant := Coord_High / 2;
+   subtype Coord_Type     is Base_Coord_Type range 0 .. Coord_High - 1;
+   subtype Rel_Coord_Type is Base_Coord_Type range -500 .. 500;
 
    type Point_Type is
       record
-         X, Y, Z : Abs_Coord_Type;
+         X, Y, Z : Coord_Type;
          Color   : Color_Type;
       end record;
 
