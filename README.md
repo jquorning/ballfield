@@ -2,6 +2,13 @@
 
 SDL2 demo using the SDLAda binding.
 
+## Build and Run
+
+```sh
+gprbuild
+./ballfield
+```
+
 ## Requirements
 
 * Ada 2012 compiler
