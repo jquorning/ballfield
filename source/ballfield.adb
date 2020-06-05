@@ -52,7 +52,7 @@ package body Ballfield is
                                  File_Name :        String;
                                  Color     :        Color_Type);
    procedure Ballfield_Move (Field      : in out Ballfield_Type;
-                             Dx, Dy, Dz :        Coord_Type);
+                             Dx, Dy, Dz :        Rel_Coord_Type);
    procedure Ballfield_Render (Field  : in out Ballfield_Type;
                                Screen : in out Surface);
 
@@ -256,9 +256,9 @@ package body Ballfield is
       for I in Ball_Index loop
 
          Field.Points (I) :=
-           (X     => Coord_Type (Random (Gen) mod 16#20000#),
-            Y     => Coord_Type (Random (Gen) mod 16#20000#),
-            Z     => 16#20000# * Coord_Type (I) / Ball_Index'Modulus,
+           (X     => Abs_Coord_Type (Random (Gen) mod 16#20000#),
+            Y     => Abs_Coord_Type (Random (Gen) mod 16#20000#),
+            Z     => 16#20000# * Abs_Coord_Type (I) / Ball_Index'Modulus,
             Color => (if Random (Gen) mod 100 > 80 then Red else Blue));
 
       end loop;
@@ -327,8 +327,8 @@ package body Ballfield is
    -- Move --
    ----------
 
-   procedure Ballfield_Move (Field : in out Ballfield_Type;
-                             Dx, Dy, Dz : Coord_Type) is
+   procedure Ballfield_Move (Field      : in out Ballfield_Type;
+                             Dx, Dy, Dz :        Rel_Coord_Type) is
    begin
       for Point of Field.Points loop
          Point := (X     => (Point.X + Dx) mod 16#20000#,
@@ -350,8 +350,8 @@ package body Ballfield is
       --  Find the ball with the highest Z.
 
       function Find_Z_Maximum return Ball_Index is
-         J_High : Ball_Index := 0;
-         Z_High : Coord_Type := 0;
+         J_High : Ball_Index     := 0;
+         Z_High : Abs_Coord_Type := 0;
       begin
          for Index in Ball_Index loop
             if Field.Points (Index).Z > Z_High then
@@ -373,11 +373,11 @@ package body Ballfield is
             Ball_Width : constant Integer := Integer (Field.Frames (0).Width);
             Frame : Frame_Index;
             FI    : Integer;
-            Z     : Coord_Type;
+            Z     : Integer;
          begin
-            Z := Field.Points (J).Z + 50;
+            Z := Integer (Field.Points (J).Z) + 50;
 
-            FI := ((Ball_Width / 2**12) + 100000) / Integer (Z);
+            FI := ((Ball_Width / 2**12) + 100000) / Z;
             FI := Ball_Width - FI;
             FI := Integer'Max (0, FI);
             FI := Integer'Min (FI, Ball_Width - 1);
@@ -614,9 +614,9 @@ package body Ballfield is
                Z_Speed : constant Float := 400.0 * Sin (FT * 0.21);
             begin
                Ballfield_Move (Balls,
-                               Coord_Type (X_Speed),
-                               Coord_Type (Y_Speed),
-                               Coord_Type (Z_Speed));
+                               Rel_Coord_Type (X_Speed),
+                               Rel_Coord_Type (Y_Speed),
+                               Rel_Coord_Type (Z_Speed));
 
                X_Offs := X_Offs - Integer (X_Speed);
                Y_Offs := Y_Offs - Integer (Y_Speed);
