@@ -257,17 +257,14 @@ package body Ballfield is
 
       for I in Ball_Index loop
 
-         Field.Points (I).X := Random (Gen) mod 16#20000#;
-         Field.Points (I).Y := Random (Gen) mod 16#20000#;
-         Field.Points (I).Z := 16#20000# * Integer (I) / Ball_Index'Modulus;
-
-         if Random (Gen) mod 100 > 80 then
-            Field.Points (I).C := Red;
-         else
-            Field.Points (I).C := Blue;
-         end if;
+         Field.Points (I) :=
+           (X     => Random (Gen) mod 16#20000#,
+            Y     => Random (Gen) mod 16#20000#,
+            Z     => 16#20000# * Integer (I) / Ball_Index'Modulus,
+            Color => (if Random (Gen) mod 100 > 80 then Red else Blue));
 
       end loop;
+
    end Ballfield_Init;
 
    ----------
@@ -336,10 +333,10 @@ package body Ballfield is
                              Dx, Dy, Dz : Koord_Type) is
    begin
       for Point of Field.Points loop
-         Point := (X => (Point.X + Integer (Dx)) mod 16#20000#,
-                   Y => (Point.Y + Integer (Dy)) mod 16#20000#,
-                   Z => (Point.Z + Integer (Dz)) mod 16#20000#,
-                   C => Point.C);
+         Point := (X     => (Point.X + Integer (Dx)) mod 16#20000#,
+                   Y     => (Point.Y + Integer (Dy)) mod 16#20000#,
+                   Z     => (Point.Z + Integer (Dz)) mod 16#20000#,
+                   Color => Point.Color);
       end loop;
    end Ballfield_Move;
 
@@ -402,7 +399,7 @@ package body Ballfield is
                                          Y      => Y_Some + Y_Half,
                                          others => 0);
             begin
-               Screen.Blit (Source      => Field.Gfx (Field.Points (J).C),
+               Screen.Blit (Source      => Field.Gfx (Field.Points (J).Color),
                             Source_Area => Field.Frames (Frame),
                             Self_Area   => Rect);
             end;

@@ -24,7 +24,7 @@ package Ballfield is
    type Point_Type is
       record
          X, Y, Z : Integer;
-         C       : Color_Type;
+         Color   : Color_Type;
       end record;
 
    --  Ballfield
