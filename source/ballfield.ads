@@ -18,12 +18,13 @@ package Ballfield is
    procedure Main;
 
    --  Definitions
-   type Ball_Index is mod 200;
+   type Ball_Index is mod 1_000;
    type Color_Type is (Blue, Red);
 
+   type Coord_Type is new Integer;
    type Point_Type is
       record
-         X, Y, Z : Integer;
+         X, Y, Z : Coord_Type;
          Color   : Color_Type;
       end record;
 

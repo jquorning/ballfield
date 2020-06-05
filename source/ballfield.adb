@@ -45,8 +45,6 @@ package body Ballfield is
    --  Render Value to position (X, Y) on Destin surface with Font.
    --  Value elements must be in "0..9.,-" otherwise element is not output.
 
-   type Koord_Type is new Integer;
-
    procedure Ballfield_Init (Field : out Ballfield_Type);
    procedure Ballfield_Free (Field : in out Ballfield_Type);
    procedure Ballfield_Init_Frames (Field : in out Ballfield_Type);
@@ -54,7 +52,7 @@ package body Ballfield is
                                  File_Name :        String;
                                  Color     :        Color_Type);
    procedure Ballfield_Move (Field      : in out Ballfield_Type;
-                             Dx, Dy, Dz :        Koord_Type);
+                             Dx, Dy, Dz :        Coord_Type);
    procedure Ballfield_Render (Field  : in out Ballfield_Type;
                                Screen : in out Surface);
 
@@ -258,9 +256,9 @@ package body Ballfield is
       for I in Ball_Index loop
 
          Field.Points (I) :=
-           (X     => Random (Gen) mod 16#20000#,
-            Y     => Random (Gen) mod 16#20000#,
-            Z     => 16#20000# * Integer (I) / Ball_Index'Modulus,
+           (X     => Coord_Type (Random (Gen) mod 16#20000#),
+            Y     => Coord_Type (Random (Gen) mod 16#20000#),
+            Z     => 16#20000# * Coord_Type (I) / Ball_Index'Modulus,
             Color => (if Random (Gen) mod 100 > 80 then Red else Blue));
 
       end loop;
@@ -330,12 +328,12 @@ package body Ballfield is
    ----------
 
    procedure Ballfield_Move (Field : in out Ballfield_Type;
-                             Dx, Dy, Dz : Koord_Type) is
+                             Dx, Dy, Dz : Coord_Type) is
    begin
       for Point of Field.Points loop
-         Point := (X     => (Point.X + Integer (Dx)) mod 16#20000#,
-                   Y     => (Point.Y + Integer (Dy)) mod 16#20000#,
-                   Z     => (Point.Z + Integer (Dz)) mod 16#20000#,
+         Point := (X     => (Point.X + Dx) mod 16#20000#,
+                   Y     => (Point.Y + Dy) mod 16#20000#,
+                   Z     => (Point.Z + Dz) mod 16#20000#,
                    Color => Point.Color);
       end loop;
    end Ballfield_Move;
@@ -353,7 +351,7 @@ package body Ballfield is
 
       function Find_Z_Maximum return Ball_Index is
          J_High : Ball_Index := 0;
-         Z_High : Integer    := 0;
+         Z_High : Coord_Type := 0;
       begin
          for Index in Ball_Index loop
             if Field.Points (Index).Z > Z_High then
@@ -375,11 +373,11 @@ package body Ballfield is
             Ball_Width : constant Integer := Integer (Field.Frames (0).Width);
             Frame : Frame_Index;
             FI    : Integer;
-            Z     : Integer;
+            Z     : Coord_Type;
          begin
             Z := Field.Points (J).Z + 50;
 
-            FI := ((Ball_Width / 2**12) + 100000) / Z;
+            FI := ((Ball_Width / 2**12) + 100000) / Integer (Z);
             FI := Ball_Width - FI;
             FI := Integer'Max (0, FI);
             FI := Integer'Min (FI, Ball_Width - 1);
@@ -616,9 +614,9 @@ package body Ballfield is
                Z_Speed : constant Float := 400.0 * Sin (FT * 0.21);
             begin
                Ballfield_Move (Balls,
-                               Koord_Type (X_Speed),
-                               Koord_Type (Y_Speed),
-                               Koord_Type (Z_Speed));
+                               Coord_Type (X_Speed),
+                               Coord_Type (Y_Speed),
+                               Coord_Type (Z_Speed));
 
                X_Offs := X_Offs - Integer (X_Speed);
                Y_Offs := Y_Offs - Integer (Y_Speed);
