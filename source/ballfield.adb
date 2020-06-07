@@ -634,10 +634,6 @@ package body Ballfield is
 
       Ballfield_Free (Balls);
 
-      Back.Finalize;
-      Logo.Finalize;
-      Font.Finalize;
-
       SDL.Finalise;
       Debug ("##End of Main");
    end Main;
