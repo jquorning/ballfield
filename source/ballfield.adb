@@ -554,11 +554,14 @@ package body Ballfield is
             --  Events
             declare
                use SDL.Events;
+               use type SDL.Events.Keyboards.Key_Codes;
+
                Event : SDL.Events.Events.Events;
             begin
                if Events.Poll (Event) then
                   exit when Event.Common.Event_Type = Quit;
-                  exit when Event.Common.Event_Type = Keyboards.Key_Down;
+                  exit when Event.Common.Event_Type = Keyboards.Key_Down and
+                    Event.Keyboard.Key_Sym.Key_Code = SDL.Events.Keyboards.Code_Escape;
                end if;
             end;
 
