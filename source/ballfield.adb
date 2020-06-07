@@ -20,6 +20,8 @@ with SDL.Images.IO;
 with SDL.Events.Events;
 with SDL.Events.Keyboards;
 
+with SDL.Video.Palettes;
+
 package body Ballfield is
 
    use SDL.Video.Surfaces;
@@ -521,14 +523,16 @@ package body Ballfield is
 
       --  Load logo
       SDL.Images.IO.Create (Logo, Assets_Path & "logo.bmp");
---      SDL_SetColorKey (temp_image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
---                      SDL_MapRGB (Temp_Image.format, 255, 0, 255));
+      SDL.Video.Surfaces.Set_Colour_Key
+        (Self => Logo,
+         Now  => SDL.Video.Palettes.Colour'(Red => 255, Green => <>, Blue => 255, Alpha => <>));
 --      logo := SDL_DisplayFormat (temp_image);
 
       --  Load font
       SDL.Images.IO.Create (Font, Assets_Path & "font7x10.bmp");
---      SDL_SetColorKey (Temp_Image, SDL_SRCCOLORKEY or SDL_RLEACCEL,
---                       SDL_MapRGB (Temp_Image.format, 255, 0, 255));
+      SDL.Video.Surfaces.Set_Colour_Key
+        (Self => Font,
+         Now  => SDL.Video.Palettes.Colour'(Red => 255, Green => <>, Blue => 255, Alpha => <>));
 --      font := SDL_DisplayFormat (temp_image);
 
       Dynamic :
