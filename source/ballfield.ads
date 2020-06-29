@@ -69,4 +69,10 @@ package Ballfield is
    BALL_W : constant := 32;
    BALL_H : constant := 32;
 
+      --  Command line options
+   Double_Buffer : aliased Boolean;
+   Full_Screen   : aliased Boolean;
+   Alpha         : aliased Integer;
+   HW_Surface    : aliased Boolean;
+
 end Ballfield;

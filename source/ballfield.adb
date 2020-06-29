@@ -452,6 +452,8 @@ package body Ballfield is
 
    procedure Main is
 
+      use SDL.Video.Windows;
+
       Balls  : Ballfield_Type;
       Window : SDL.Video.Windows.Window;
 
@@ -461,7 +463,10 @@ package body Ballfield is
       Font   : Surface;
 --      Temp   : Surface;
 
---      bpp    : Integer := 0;
+      Flags     : constant Window_Flags := (if Full_Screen
+                                              then SDL.Video.Windows.Full_Screen
+                                              else 0);
+
 --      flags  : Integer := SDL_DOUBLEBUF or SDL_SWSURFACE;
       Alpha  : constant Boolean := True;
    begin
@@ -470,29 +475,11 @@ package body Ballfield is
          raise Program_Error with "Could not initialise SDL";
       end if;
 
---      for(i = 1; i < argc; ++i)
---      {
---              if(strncmp(argv[i], "-na", 3) == 0)
---                      alpha = 0;
---              else if(strncmp(argv[i], "-nd", 3) == 0)
---                      flags &= ~SDL_DOUBLEBUF;
---              else if(strncmp(argv[i], "-h", 2) == 0)
---              {
---                      flags |= SDL_HWSURFACE;
---                      flags &= ~SDL_SWSURFACE;
---              }
---              else if(strncmp(argv[i], "-f", 2) == 0)
---                      flags |= SDL_FULLSCREEN;
---              else
---                      bpp = atoi(&argv[i][1]);
---      end loop;
-
       SDL.Video.Windows.Makers.Create (Window,
                                        Title    => "Ballfield",
                                        Position => (100, 100),
-                                       Size     => (SCREEN_W, SCREEN_H) -- ,
-                                       --  Bpp,
-                                       ); -- Flags => False); --Flags);
+                                       Size     => (SCREEN_W, SCREEN_H),
+                                       Flags    => Flags);
       Screen := Window.Get_Surface;
 
 --      if(flags & SDL_FULLSCREEN)
