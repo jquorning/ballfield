@@ -26,9 +26,6 @@ package body Ballfield is
 
    use SDL.Video.Surfaces;
 
-   procedure Debug (Text : String);
-   --  Print out debug Text to standard output.
-
 --   procedure Clean_Alpha (Work : out Surface;
 --                          S    :     Surface);
    --  Bump areas of low and high alpha to 0% or 100%
@@ -62,15 +59,6 @@ package body Ballfield is
                          Screen : in out Surface;
                          Xo, Yo :        Integer);
    --  Draw tiled background image with offset.
-
-   --
-   --
-   --
-
-   procedure Debug (Text : String) is
-   begin
-      Ada.Text_IO.Put_Line (Text);
-   end Debug;
 
    -----------------
    -- Clean_Alpha --
@@ -471,12 +459,14 @@ package body Ballfield is
       Back   : Surface;
       Logo   : Surface;
       Font   : Surface;
+--      Temp   : Surface;
 
 --      bpp    : Integer := 0;
 --      flags  : Integer := SDL_DOUBLEBUF or SDL_SWSURFACE;
       Alpha  : constant Boolean := True;
    begin
-      if not SDL.Initialise (SDL.Enable_Screen) then
+      --  Look like Audio has to be enabled otherwise crash at shutdown
+      if not SDL.Initialise (SDL.Enable_Audio) then
          raise Program_Error with "Could not initialise SDL";
       end if;
 
@@ -526,7 +516,7 @@ package body Ballfield is
       SDL.Video.Surfaces.Set_Colour_Key
         (Self => Logo,
          Now  => SDL.Video.Palettes.Colour'(Red => 255, Green => <>, Blue => 255, Alpha => <>));
---      logo := SDL_DisplayFormat (temp_image);
+      --  Logo := SDL.Video.Surfaces.Helpers.Convert (Temp, Format => Screen.Pixel_Format);
 
       --  Load font
       SDL.Images.IO.Create (Font, Assets_Path & "font7x10.bmp");
@@ -642,7 +632,6 @@ package body Ballfield is
       Ballfield_Free (Balls);
 
       SDL.Finalise;
-      Debug ("##End of Main");
    end Main;
 
 end Ballfield;
