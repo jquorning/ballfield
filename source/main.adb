@@ -14,7 +14,7 @@ begin
    Define_Switch (Config, Alpha'Access,         "-a:", Help => "Alpha (0..255)");
    Define_Switch (Config, Double_Buffer'Access, "-d",  Help => "Double buffer");
    Define_Switch (Config, Full_Screen'Access,   "-f",  Help => "Full screen");
-   Define_Switch (Config, HW_Surface'Access,    "-h",  Help => "HW surface");
+   Define_Switch (Config, HW_Surface'Access,    "-s",  Help => "HW surface");
 
    Getopt (Config);
 
@@ -25,6 +25,10 @@ begin
    end if;
 
 exception
-   when Invalid_Parameter =>
+   when
+     Invalid_Parameter |
+     Invalid_Switch    |
+     Exit_From_Command_Line
+     =>
       Display_Help (Config);
 end Main;
